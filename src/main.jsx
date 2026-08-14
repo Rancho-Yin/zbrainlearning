@@ -26,6 +26,8 @@ import {
 import { presentations, recordings } from './data';
 import './styles.css';
 
+const LOGO_SRC = `${import.meta.env.BASE_URL}assets/zhixian-robot-logo.png`;
+
 const dateFormatter = new Intl.DateTimeFormat('zh-CN', {
   month: 'long',
   day: 'numeric',
@@ -35,7 +37,7 @@ const dateFormatter = new Intl.DateTimeFormat('zh-CN', {
 function Brand() {
   return (
     <a className="brand" href="#top" aria-label="返回智显机器人 AI 学习创新中心首页">
-      <img src="/assets/zhixian-robot-logo.png" alt="智显机器人" />
+      <img src={LOGO_SRC} alt="智显机器人" />
       <span className="brand-divider" />
       <span className="brand-site-name">AI 学习创新中心</span>
     </a>
@@ -323,7 +325,7 @@ function Library({ section, query, onSectionChange }) {
 
 function Footer() {
   return (
-    <footer><div className="footer-brand"><img src="/assets/zhixian-robot-logo.png" alt="智显机器人" /><span>AI 学习创新中心</span></div><div><GraduationCap /><span>赋能每一位伙伴，更专业地理解产品、更高效地赢得客户。</span></div><a href="#top">返回顶部 <ArrowLeft /></a></footer>
+    <footer><div className="footer-brand"><img src={LOGO_SRC} alt="智显机器人" /><span>AI 学习创新中心</span></div><div><GraduationCap /><span>赋能每一位伙伴，更专业地理解产品、更高效地赢得客户。</span></div><a href="#top">返回顶部 <ArrowLeft /></a></footer>
   );
 }
 

@@ -110,4 +110,25 @@ export const presentations = [
     category: '专业建设',
     cover: 'assets/covers/digital-media-education.png',
   },
+  {
+    id: 'kejindasha-ai-native-showcase-case',
+    title: '从科金大厦开启 AI 原生展示空间_案例分享',
+    url: 'https://livepad.zbrain.cn/s/pad-mssygqtz-ne9keq?p=p_b71f5093762c7caa',
+    category: '案例分享',
+    cover: 'assets/covers/ai-showroom.png',
+  },
+  {
+    id: 'jilin-university-zhengyuan-ai-showroom',
+    title: '吉大正元智能展厅定义AI空间智脑新标杆',
+    url: 'https://livepad.zbrain.cn/s/pad-mst00xyj-aeetrp?p=p_b71f5093762c7caa',
+    category: '案例分享',
+    cover: 'assets/covers/ai-showroom.png',
+  },
+  {
+    id: 'ai-partner-training-camp-welcome-speech',
+    title: 'AI代理商训战营欢迎演讲',
+    url: 'https://livepad.zbrain.cn/s/pad-mst0wasr-3cq6h0?p=p_b71f5093762c7caa',
+    category: '训战课程',
+    cover: 'assets/covers/partner-training.png',
+  },
 ];

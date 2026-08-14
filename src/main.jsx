@@ -115,7 +115,7 @@ function Hero({ onBrowse, onAbout }) {
     <section className="hero" id="top">
       <div className="hero-grid" aria-hidden="true" />
       <div className="hero-copy">
-        <div className="hero-brand-line"><img src="/assets/zhixian-robot-logo.png" alt="" /><span>代理商成长与销售赋能平台</span></div>
+        <div className="hero-brand-line"><img src={LOGO_SRC} alt="" /><span>代理商成长与销售赋能平台</span></div>
         <h1><span>智显机器人</span><span>AI 学习创新中心</span></h1>
         <p>面向智显机器人全国代理商打造的知识与实战平台。系统学习产品价值、场景方案、演示方法与销售策略，把专业能力转化为客户信任，把每一次学习转化为业务增长。</p>
         <div className="hero-actions">

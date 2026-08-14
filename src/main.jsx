@@ -12,13 +12,16 @@ import {
   FileText,
   FolderOpen,
   GraduationCap,
+  Link2,
   Menu,
   MessageSquareText,
   Play,
+  Plus,
   Presentation,
   Search,
   Sparkles,
   Target,
+  Trash2,
   Video,
   X,
   Zap,
@@ -27,6 +30,23 @@ import { presentations, recordings } from './data';
 import './styles.css';
 
 const LOGO_SRC = `${import.meta.env.BASE_URL}assets/zhixian-robot-logo.png`;
+const COVER_ASSETS = [
+  'assets/covers/ai-showroom.png',
+  'assets/covers/digital-media-education.png',
+  'assets/covers/partner-training.png',
+];
+const PRESENTATION_STORAGE_KEY = 'zbrainlearning-custom-presentations-v1';
+
+const assetUrl = (path) => `${import.meta.env.BASE_URL}${path}`;
+
+function loadCustomPresentations() {
+  try {
+    const value = JSON.parse(localStorage.getItem(PRESENTATION_STORAGE_KEY) || '[]');
+    return Array.isArray(value) ? value.filter((item) => item?.id && item?.title && item?.url) : [];
+  } catch {
+    return [];
+  }
+}
 
 const dateFormatter = new Intl.DateTimeFormat('zh-CN', {
   month: 'long',
@@ -44,10 +64,10 @@ function Brand() {
   );
 }
 
-function Sidebar({ section, onSectionChange, activeNav, onActiveNavChange, open, onClose }) {
+function Sidebar({ presentationCount, section, onSectionChange, activeNav, onActiveNavChange, open, onClose }) {
   const items = [
     { id: 'overview', label: '首页', icon: FolderOpen, href: '#top' },
-    { id: 'presentations', label: 'PPT 方案', icon: FileText, href: '#library', count: presentations.length },
+    { id: 'presentations', label: 'PPT 方案', icon: FileText, href: '#library', count: presentationCount },
     { id: 'recordings', label: '会议回放', icon: Video, href: '#library', count: recordings.length },
   ];
 
@@ -150,10 +170,10 @@ function Hero({ onBrowse, onAbout }) {
   );
 }
 
-function Stats() {
+function Stats({ presentationCount }) {
   const stats = [
     { value: recordings.length, label: '场实战会议回放', icon: Video, detail: '覆盖 6 期连续训练' },
-    { value: presentations.length || '待', label: '份产品方案资料', icon: FileText, detail: '方案库持续补充中' },
+    { value: presentationCount || '待', label: '份产品方案资料', icon: FileText, detail: '方案库持续补充中' },
     { value: '4', label: '阶段代理商路径', icon: ChartNoAxesCombined, detail: '从懂产品到促成交' },
   ];
   return (
@@ -258,15 +278,26 @@ function EmptyPpt() {
   );
 }
 
-function PresentationCard({ presentation, index }) {
+function PresentationCard({ presentation, index, onRemove }) {
+  const cover = presentation.cover || COVER_ASSETS[index % COVER_ASSETS.length];
   return (
     <article className="presentation-card">
       <div className="presentation-card-head">
         <span className="presentation-index">{String(index + 1).padStart(2, '0')}</span>
-        <span className="presentation-category"><Presentation /> {presentation.category || '产品方案'}</span>
+        <div className="presentation-card-meta">
+          <span className="presentation-category"><Presentation /> {presentation.category || '产品方案'}</span>
+          {presentation.isCustom && (
+            <button className="presentation-remove" onClick={() => onRemove(presentation.id)} aria-label={`删除${presentation.title}`} title="删除自定义方案">
+              <Trash2 />
+            </button>
+          )}
+        </div>
       </div>
+      <a className="presentation-cover" href={presentation.url} target="_blank" rel="noreferrer" aria-label={`打开${presentation.title}`}>
+        <img src={assetUrl(cover)} alt="" loading="lazy" />
+        <span><FileText /> PPT</span>
+      </a>
       <div className="presentation-card-body">
-        <FileText className="presentation-file-icon" aria-hidden="true" />
         <a className="presentation-title" href={presentation.url} target="_blank" rel="noreferrer">
           {presentation.title}
         </a>
@@ -278,32 +309,102 @@ function PresentationCard({ presentation, index }) {
   );
 }
 
-function PresentationLibrary({ items }) {
+function AddPresentationDialog({ open, onClose, onAdd }) {
+  const [title, setTitle] = useState('');
+  const [url, setUrl] = useState('');
+  const [category, setCategory] = useState('');
+  const [error, setError] = useState('');
+
+  React.useEffect(() => {
+    if (!open) return undefined;
+    const closeOnEscape = (event) => event.key === 'Escape' && onClose();
+    window.addEventListener('keydown', closeOnEscape);
+    return () => window.removeEventListener('keydown', closeOnEscape);
+  }, [onClose, open]);
+
+  if (!open) return null;
+
+  const submit = (event) => {
+    event.preventDefault();
+    const cleanedTitle = title.trim();
+    const cleanedUrl = url.trim().replace(/[，,。；;]+$/, '');
+    if (!cleanedTitle || !cleanedUrl) {
+      setError('请填写方案名称和网址。');
+      return;
+    }
+    try {
+      const parsedUrl = new URL(cleanedUrl);
+      if (!['http:', 'https:'].includes(parsedUrl.protocol)) throw new Error('invalid protocol');
+      onAdd({ title: cleanedTitle, url: parsedUrl.href, category: category.trim() || '自定义方案' });
+      setTitle('');
+      setUrl('');
+      setCategory('');
+      setError('');
+    } catch {
+      setError('请输入以 http:// 或 https:// 开头的有效网址。');
+    }
+  };
+
+  return (
+    <div className="dialog-backdrop" onMouseDown={(event) => event.target === event.currentTarget && onClose()}>
+      <section className="add-dialog" role="dialog" aria-modal="true" aria-labelledby="add-presentation-title">
+        <div className="add-dialog-head">
+          <div><span>ADD NEW SOLUTION</span><h3 id="add-presentation-title">新增 PPT 方案</h3></div>
+          <button className="dialog-close" onClick={onClose} aria-label="关闭新增方案窗口"><X /></button>
+        </div>
+        <form onSubmit={submit} noValidate>
+          <label>
+            <span>方案名称</span>
+            <input autoFocus value={title} onChange={(event) => setTitle(event.target.value)} placeholder="输入 PPT 方案名称" />
+          </label>
+          <label>
+            <span>方案网址</span>
+            <div className="url-input"><Link2 /><input value={url} onChange={(event) => setUrl(event.target.value)} placeholder="https://" inputMode="url" /></div>
+          </label>
+          <label>
+            <span>方案分类 <small>选填</small></span>
+            <input value={category} onChange={(event) => setCategory(event.target.value)} placeholder="例如：行业方案、代理商培训" />
+          </label>
+          {error && <p className="form-error" role="alert">{error}</p>}
+          <div className="dialog-actions">
+            <button type="button" className="dialog-cancel" onClick={onClose}>取消</button>
+            <button type="submit" className="dialog-submit"><Plus /> 添加到方案库</button>
+          </div>
+        </form>
+      </section>
+    </div>
+  );
+}
+
+function PresentationLibrary({ items, onAddClick, onRemove }) {
   if (!items.length) return <div className="no-results"><Search /><h3>没有找到相关方案</h3><p>换一个方案名称试试。</p></div>;
   return (
     <section className="presentation-library" aria-label="PPT 方案列表">
       <div className="presentation-library-head">
         <div><p className="section-kicker">PRESENTATION LIBRARY</p><h3>PPT 方案</h3></div>
-        <p>点击方案名称或“打开方案”，即可在新标签页查看完整内容。</p>
+        <div className="presentation-library-actions">
+          <p>点击方案名称或“打开方案”，即可在新标签页查看完整内容。</p>
+          <button onClick={onAddClick}><Plus /> 新增方案</button>
+        </div>
       </div>
       <div className="presentation-grid">
-        {items.map((presentation, index) => <PresentationCard key={presentation.id} presentation={presentation} index={index} />)}
+        {items.map((presentation, index) => <PresentationCard key={presentation.id} presentation={presentation} index={index} onRemove={onRemove} />)}
       </div>
     </section>
   );
 }
 
-function Library({ section, query, onSectionChange }) {
+function Library({ presentationItems, section, query, onSectionChange, onAddClick, onRemove }) {
   const normalized = query.trim().toLowerCase();
   const compactQuery = normalized.replace(/[^a-z0-9\u4e00-\u9fff]/g, '');
   const filteredRecordings = useMemo(() => recordings.filter((item) => {
     const source = `${item.title} ${item.date} ${item.phase}`.toLowerCase();
     return source.includes(normalized) || source.replace(/[^a-z0-9\u4e00-\u9fff]/g, '').includes(compactQuery);
   }), [compactQuery, normalized]);
-  const filteredPresentations = useMemo(() => presentations.filter((item) => {
+  const filteredPresentations = useMemo(() => presentationItems.filter((item) => {
     const source = `${item.title} ${item.category || ''}`.toLowerCase();
     return source.includes(normalized) || source.replace(/[^a-z0-9\u4e00-\u9fff]/g, '').includes(compactQuery);
-  }), [compactQuery, normalized]);
+  }), [compactQuery, normalized, presentationItems]);
   const showRecordings = section !== 'presentations';
   const showPresentations = section !== 'recordings';
 
@@ -318,7 +419,7 @@ function Library({ section, query, onSectionChange }) {
         </div>
       </div>
       {showRecordings && <div className="recording-list">{filteredRecordings.length ? filteredRecordings.map((recording, index) => <RecordingRow key={recording.id} recording={recording} index={index} />) : <div className="no-results"><Search /><h3>没有找到相关课程</h3><p>换一个标题或日期试试。</p></div>}</div>}
-      {showPresentations && (presentations.length ? <PresentationLibrary items={filteredPresentations} /> : <EmptyPpt />)}
+      {showPresentations && (presentationItems.length ? <PresentationLibrary items={filteredPresentations} onAddClick={onAddClick} onRemove={onRemove} /> : <EmptyPpt />)}
     </section>
   );
 }
@@ -334,6 +435,13 @@ function App() {
   const [activeNav, setActiveNav] = useState('overview');
   const [query, setQuery] = useState('');
   const [menuOpen, setMenuOpen] = useState(false);
+  const [addDialogOpen, setAddDialogOpen] = useState(false);
+  const [customPresentations, setCustomPresentations] = useState(loadCustomPresentations);
+  const presentationItems = useMemo(() => [...presentations, ...customPresentations], [customPresentations]);
+
+  React.useEffect(() => {
+    localStorage.setItem(PRESENTATION_STORAGE_KEY, JSON.stringify(customPresentations));
+  }, [customPresentations]);
 
   React.useEffect(() => {
     const onKeyDown = (event) => {
@@ -358,16 +466,35 @@ function App() {
     setActiveNav(nextSection === 'all' ? 'overview' : nextSection);
   };
 
+  const addPresentation = (item) => {
+    const cover = COVER_ASSETS[Math.floor(Math.random() * COVER_ASSETS.length)];
+    setCustomPresentations((current) => [...current, {
+      ...item,
+      id: `custom-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+      cover,
+      isCustom: true,
+    }]);
+    setQuery('');
+    changeSection('presentations');
+    setAddDialogOpen(false);
+    requestAnimationFrame(() => document.querySelector('.presentation-library')?.scrollIntoView({ behavior: 'smooth' }));
+  };
+
+  const removePresentation = (id) => {
+    setCustomPresentations((current) => current.filter((presentation) => presentation.id !== id));
+  };
+
   return (
     <div className="app-shell">
-      <Sidebar section={section} onSectionChange={changeSection} activeNav={activeNav} onActiveNavChange={setActiveNav} open={menuOpen} onClose={() => setMenuOpen(false)} />
+      <Sidebar presentationCount={presentationItems.length} section={section} onSectionChange={changeSection} activeNav={activeNav} onActiveNavChange={setActiveNav} open={menuOpen} onClose={() => setMenuOpen(false)} />
       <main>
         <Topbar query={query} setQuery={setQuery} onMenu={() => setMenuOpen(true)} />
         <Hero onBrowse={browse} onAbout={() => setActiveNav('overview')} />
-        <div className="content-wrap"><Stats /><About /></div>
+        <div className="content-wrap"><Stats presentationCount={presentationItems.length} /><About /></div>
         <Enablement />
-        <div className="content-wrap"><Library section={section} query={query} onSectionChange={changeSection} /><Footer /></div>
+        <div className="content-wrap"><Library presentationItems={presentationItems} section={section} query={query} onSectionChange={changeSection} onAddClick={() => setAddDialogOpen(true)} onRemove={removePresentation} /><Footer /></div>
       </main>
+      <AddPresentationDialog open={addDialogOpen} onClose={() => setAddDialogOpen(false)} onAdd={addPresentation} />
     </div>
   );
 }

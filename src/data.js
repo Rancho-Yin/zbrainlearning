@@ -57,5 +57,20 @@ export const presentations = [
     title: '智显机器人-AI展厅方案',
     url: 'https://livepad.zbrain.cn/s/pad-msrqboxk-zc248e?p=p_b71f5093762c7caa',
     category: 'AI 展厅',
+    cover: 'assets/covers/ai-showroom.png',
+  },
+  {
+    id: 'digital-media-discipline',
+    title: '数字媒体专业学科建设方案',
+    url: 'https://livepad.zbrain.cn/s/pad-mssgu0n6-poc3iu?p=p_b71f5093762c7caa',
+    category: '专业建设',
+    cover: 'assets/covers/digital-media-education.png',
+  },
+  {
+    id: 'august-partner-training',
+    title: '8月代理商推广培训开营',
+    url: 'https://livepad.zbrain.cn/s/pad-msshgszo-f85na7?p=p_b71f5093762c7caa',
+    category: '代理商培训',
+    cover: 'assets/covers/partner-training.png',
   },
 ];

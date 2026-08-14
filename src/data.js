@@ -53,6 +53,50 @@ export const recordings = [
 // 后续 PPT 按相同格式追加标题和链接即可，页面会自动生成方案窗口。
 export const presentations = [
   {
+    id: 'august-partner-training',
+    title: '8月代理商推广培训开营',
+    url: 'https://livepad.zbrain.cn/s/pad-msshgszo-f85na7?p=p_b71f5093762c7caa',
+    category: '代理商培训',
+    cover: 'assets/covers/partner-training.png',
+    publishedAt: '2026-08-01',
+  },
+  {
+    id: 'july-partner-training',
+    title: '七月代理商培训',
+    url: 'https://livepad.zbrain.cn/s/pad-mssoy8ow-1a7vxh?p=p_b71f5093762c7caa',
+    category: '代理商培训',
+    cover: 'assets/covers/partner-training.png',
+    publishedAt: '2026-07-01',
+  },
+  {
+    id: 'ai-solution-sales-assistant-01',
+    title: 'AI解决方案销售助手01',
+    url: 'https://livepad.zbrain.cn/s/pad-mssqel9k-ch3qwm?p=p_ad1c531970069223',
+    category: '销售工具',
+    cover: 'assets/covers/partner-training.png',
+  },
+  {
+    id: 'smart-space-technology-solution',
+    title: '智能空间技术解决方案',
+    url: 'https://livepad.zbrain.cn/s/pad-msrhe7lg-3m9wpv?p=p_ad1c531970069223',
+    category: '空间方案',
+    cover: 'assets/covers/ai-showroom.png',
+  },
+  {
+    id: 'zhixian-ai-training-camp',
+    title: '智显AI训战营',
+    url: 'https://livepad.zbrain.cn/s/pad-mssqxzql-3f64jp?p=p_b71f5093762c7caa',
+    category: '训战课程',
+    cover: 'assets/covers/partner-training.png',
+  },
+  {
+    id: 'zbrain-aigc-business-solution',
+    title: 'ZBrain智显AIGC业务解决方案',
+    url: 'https://livepad.zbrain.cn/s/pad-msssttj1-va9wwn?p=p_ad1c531970069223',
+    category: 'AIGC 方案',
+    cover: 'assets/covers/digital-media-education.png',
+  },
+  {
     id: 'ai-showroom-solution',
     title: '智显机器人-AI展厅方案',
     url: 'https://livepad.zbrain.cn/s/pad-msrqboxk-zc248e?p=p_b71f5093762c7caa',
@@ -65,12 +109,5 @@ export const presentations = [
     url: 'https://livepad.zbrain.cn/s/pad-mssgu0n6-poc3iu?p=p_b71f5093762c7caa',
     category: '专业建设',
     cover: 'assets/covers/digital-media-education.png',
-  },
-  {
-    id: 'august-partner-training',
-    title: '8月代理商推广培训开营',
-    url: 'https://livepad.zbrain.cn/s/pad-msshgszo-f85na7?p=p_b71f5093762c7caa',
-    category: '代理商培训',
-    cover: 'assets/covers/partner-training.png',
   },
 ];

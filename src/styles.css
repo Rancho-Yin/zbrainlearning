@@ -197,7 +197,7 @@ kbd { min-width: 37px; padding: 5px 7px; border: 1px solid #3c2d4e; border-radiu
 .presentation-card { min-height: 380px; display: grid; grid-template-rows: 48px auto 1fr 45px; overflow: hidden; background: white; border: 1px solid #dcd4e4; border-radius: 6px; transition: .22s ease; }
 .presentation-card:hover { border-color: #a76aed; transform: translateY(-3px); box-shadow: 0 16px 34px rgba(49,20,72,.1); }
 .presentation-card-head { padding: 0 17px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #eee9f2; }
-.presentation-index { color: #a49aaa; font-size: 8px; }.presentation-category { display: flex; align-items: center; gap: 6px; color: var(--purple); font-size: 8px; font-weight: 600; }.presentation-category svg { width: 12px; }
+.presentation-index { display: flex; align-items: center; gap: 7px; color: #a49aaa; font-size: 8px; }.presentation-index small { color: #766b7e; font-size: 7px; }.presentation-category { display: flex; align-items: center; gap: 6px; color: var(--purple); font-size: 8px; font-weight: 600; }.presentation-category svg { width: 12px; }
 .presentation-card-meta { display: flex; align-items: center; gap: 8px; }
 .presentation-remove { width: 27px; height: 27px; display: grid; place-items: center; padding: 0; color: #a49aaa; border: 0; border-radius: 4px; background: transparent; cursor: pointer; }
 .presentation-remove svg { width: 13px; }.presentation-remove:hover { color: #c13d69; background: #faedf2; }

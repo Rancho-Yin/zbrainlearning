@@ -36,6 +36,7 @@ const COVER_ASSETS = [
   'assets/covers/partner-training.png',
 ];
 const PRESENTATION_STORAGE_KEY = 'zbrainlearning-custom-presentations-v1';
+const CURRENT_MONTH = new Date().toISOString().slice(0, 7);
 
 const assetUrl = (path) => `${import.meta.env.BASE_URL}${path}`;
 
@@ -280,10 +281,11 @@ function EmptyPpt() {
 
 function PresentationCard({ presentation, index, onRemove }) {
   const cover = presentation.cover || COVER_ASSETS[index % COVER_ASSETS.length];
+  const monthLabel = presentation.publishedAt?.slice(0, 7).replace('-', '.');
   return (
     <article className="presentation-card">
       <div className="presentation-card-head">
-        <span className="presentation-index">{String(index + 1).padStart(2, '0')}</span>
+        <span className="presentation-index">{String(index + 1).padStart(2, '0')}{monthLabel && <small>{monthLabel}</small>}</span>
         <div className="presentation-card-meta">
           <span className="presentation-category"><Presentation /> {presentation.category || '产品方案'}</span>
           {presentation.isCustom && (
@@ -313,6 +315,7 @@ function AddPresentationDialog({ open, onClose, onAdd }) {
   const [title, setTitle] = useState('');
   const [url, setUrl] = useState('');
   const [category, setCategory] = useState('');
+  const [month, setMonth] = useState(CURRENT_MONTH);
   const [error, setError] = useState('');
 
   React.useEffect(() => {
@@ -335,10 +338,11 @@ function AddPresentationDialog({ open, onClose, onAdd }) {
     try {
       const parsedUrl = new URL(cleanedUrl);
       if (!['http:', 'https:'].includes(parsedUrl.protocol)) throw new Error('invalid protocol');
-      onAdd({ title: cleanedTitle, url: parsedUrl.href, category: category.trim() || '自定义方案' });
+      onAdd({ title: cleanedTitle, url: parsedUrl.href, category: category.trim() || '自定义方案', publishedAt: month ? `${month}-01` : '' });
       setTitle('');
       setUrl('');
       setCategory('');
+      setMonth(CURRENT_MONTH);
       setError('');
     } catch {
       setError('请输入以 http:// 或 https:// 开头的有效网址。');
@@ -364,6 +368,10 @@ function AddPresentationDialog({ open, onClose, onAdd }) {
           <label>
             <span>方案分类 <small>选填</small></span>
             <input value={category} onChange={(event) => setCategory(event.target.value)} placeholder="例如：行业方案、代理商培训" />
+          </label>
+          <label>
+            <span>方案月份 <small>用于倒序排列</small></span>
+            <input type="month" value={month} onChange={(event) => setMonth(event.target.value)} />
           </label>
           {error && <p className="form-error" role="alert">{error}</p>}
           <div className="dialog-actions">
@@ -437,7 +445,10 @@ function App() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [addDialogOpen, setAddDialogOpen] = useState(false);
   const [customPresentations, setCustomPresentations] = useState(loadCustomPresentations);
-  const presentationItems = useMemo(() => [...presentations, ...customPresentations], [customPresentations]);
+  const presentationItems = useMemo(() => [...presentations, ...customPresentations]
+    .map((item, index) => ({ item, index, time: item.publishedAt ? Date.parse(item.publishedAt) : 0 }))
+    .sort((left, right) => right.time - left.time || left.index - right.index)
+    .map(({ item }) => item), [customPresentations]);
 
   React.useEffect(() => {
     localStorage.setItem(PRESENTATION_STORAGE_KEY, JSON.stringify(customPresentations));

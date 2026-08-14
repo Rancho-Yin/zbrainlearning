@@ -294,7 +294,7 @@ function PresentationCard({ presentation, index, onRemove }) {
         </div>
       </div>
       <a className="presentation-cover" href={presentation.url} target="_blank" rel="noreferrer" aria-label={`打开${presentation.title}`}>
-        <img src={assetUrl(cover)} alt="" loading="lazy" />
+        <img src={assetUrl(cover)} alt="" loading={index < 3 ? 'eager' : 'lazy'} />
         <span><FileText /> PPT</span>
       </a>
       <div className="presentation-card-body">

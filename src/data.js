@@ -1,7 +1,7 @@
 export const recordings = [
   {
     id: '2026-08-08',
-    title: '智显 AI 训战营课程',
+    title: '智显机器人 AI 训战营第6期',
     date: '2026-08-08',
     time: '13:45',
     url: 'https://meeting.tencent.com/crm/KebxgxAke0',
@@ -10,7 +10,7 @@ export const recordings = [
   },
   {
     id: '2026-07-31',
-    title: '智显机器人 AI 训战营',
+    title: '智显机器人 AI 训战营第5期',
     date: '2026-07-31',
     time: '13:50',
     url: 'https://meeting.tencent.com/crm/NobdbOqa8a',
@@ -18,7 +18,7 @@ export const recordings = [
   },
   {
     id: '2026-07-24',
-    title: '智显机器人 AI 训战营',
+    title: '智显机器人 AI 训战营第4期',
     date: '2026-07-24',
     time: '13:50',
     url: 'https://meeting.tencent.com/crm/2O1EG0r377',
@@ -26,7 +26,7 @@ export const recordings = [
   },
   {
     id: '2026-07-17',
-    title: '智显机器人 AI 训战营',
+    title: '智显机器人 AI 训战营第3期',
     date: '2026-07-17',
     time: '13:41',
     url: 'https://meeting.tencent.com/crm/2kna8Z3R07',
@@ -34,7 +34,7 @@ export const recordings = [
   },
   {
     id: '2026-07-10',
-    title: '智显机器人 AI 训战营',
+    title: '智显机器人 AI 训战营第2期',
     date: '2026-07-10',
     time: '13:47',
     url: 'https://meeting.tencent.com/crm/2qn1n9G517',
@@ -42,7 +42,7 @@ export const recordings = [
   },
   {
     id: '2026-07-03',
-    title: '智显机器人 AI 训战营',
+    title: '智显机器人 AI 训战营第1期',
     date: '2026-07-03',
     time: '13:48',
     url: 'https://meeting.tencent.com/crm/K0JOQxG0b5',

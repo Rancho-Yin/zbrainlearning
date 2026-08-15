@@ -271,7 +271,7 @@ function RecordingRow({ recording, index }) {
       <div className="row-index">{String(index + 1).padStart(2, '0')}</div>
       <div className="row-line"><span /></div>
       <div className="row-date"><strong>{dateFormatter.format(date).replace('星期', '周')}</strong><span>{recording.date}</span></div>
-      <div className="row-content"><div className="type-label"><Video /> 代理商训战回放</div><h3>{recording.title}</h3><p><Clock3 /> {recording.time} 开始 <span>·</span> {recording.phase}</p></div>
+      <div className="row-content"><div className="type-label"><Video /> 代理商训战回放</div><h3>{recording.title}</h3><p><Clock3 /> {recording.time} 开始</p></div>
       <a className="play-button" href={recording.url} target="_blank" rel="noreferrer"><Play fill="currentColor" /><span>观看回放</span><ArrowUpRight /></a>
     </article>
   );

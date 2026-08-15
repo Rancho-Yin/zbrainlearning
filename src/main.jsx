@@ -57,10 +57,10 @@ const dateFormatter = new Intl.DateTimeFormat('zh-CN', {
 
 function Brand() {
   return (
-    <a className="brand" href="#top" aria-label="返回智显机器人 AI 学习创新中心首页">
+    <a className="brand" href="#top" aria-label="返回智显机器人AI训战中心首页">
       <img src={LOGO_SRC} alt="智显机器人" />
       <span className="brand-divider" />
-      <span className="brand-site-name">AI 学习创新中心</span>
+      <span className="brand-site-name">AI训战中心</span>
     </a>
   );
 }
@@ -137,7 +137,7 @@ function Hero({ onBrowse, onAbout }) {
       <div className="hero-grid" aria-hidden="true" />
       <div className="hero-copy">
         <div className="hero-brand-line"><img src={LOGO_SRC} alt="" /><span>代理商成长与销售赋能平台</span></div>
-        <h1><span>智显机器人</span><span>AI 学习创新中心</span></h1>
+        <h1><span>智显机器人</span><span>AI训战中心</span></h1>
         <p>面向智显机器人全国代理商打造的知识与实战平台。系统学习产品价值、场景方案、演示方法与销售策略，把专业能力转化为客户信任，把每一次学习转化为业务增长。</p>
         <div className="hero-actions">
           <button className="primary-button" onClick={onBrowse}>开启赋能学习 <ChevronRight /></button>
@@ -434,7 +434,7 @@ function Library({ presentationItems, section, query, onSectionChange, onAddClic
 
 function Footer() {
   return (
-    <footer><div className="footer-brand"><img src={LOGO_SRC} alt="智显机器人" /><span>AI 学习创新中心</span></div><div><GraduationCap /><span>赋能每一位伙伴，更专业地理解产品、更高效地赢得客户。</span></div><a href="#top">返回顶部 <ArrowLeft /></a></footer>
+    <footer><div className="footer-brand"><img src={LOGO_SRC} alt="智显机器人" /><span>AI训战中心</span></div><div><GraduationCap /><span>赋能每一位伙伴，更专业地理解产品、更高效地赢得客户。</span></div><a href="#top">返回顶部 <ArrowLeft /></a></footer>
   );
 }
 

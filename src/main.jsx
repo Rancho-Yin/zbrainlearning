@@ -26,7 +26,7 @@ import {
   X,
   Zap,
 } from 'lucide-react';
-import { presentations, recordings } from './data';
+import { presentationReplays, presentations, recordings } from './data';
 import './styles.css';
 
 const LOGO_SRC = `${import.meta.env.BASE_URL}assets/zhixian-robot-logo.png`;
@@ -37,13 +37,20 @@ const COVER_ASSETS = [
 ];
 const PRESENTATION_STORAGE_KEY = 'zbrainlearning-custom-presentations-v1';
 const CURRENT_MONTH = new Date().toISOString().slice(0, 7);
+const SOLUTION_GROUPS = [
+  { id: 'company', number: '01', label: '公司介绍', description: '了解智显机器人与合作伙伴的业务能力、品牌定位与核心优势。' },
+  { id: 'solution', number: '02', label: '解决方案介绍', description: '按展厅、教育、能源与 AIGC 等场景查找可直接讲解的方案。' },
+  { id: 'case', number: '03', label: '案例介绍', description: '通过已落地的展厅、能源与文旅案例，辅助客户沟通与项目转化。' },
+];
 
 const assetUrl = (path) => `${import.meta.env.BASE_URL}${path}`;
 
 function loadCustomPresentations() {
   try {
     const value = JSON.parse(localStorage.getItem(PRESENTATION_STORAGE_KEY) || '[]');
-    return Array.isArray(value) ? value.filter((item) => item?.id && item?.title && item?.url) : [];
+    return Array.isArray(value)
+      ? value.filter((item) => item?.id && item?.title && item?.url).map((item) => ({ ...item, group: item.group || 'solution' }))
+      : [];
   } catch {
     return [];
   }
@@ -65,11 +72,11 @@ function Brand() {
   );
 }
 
-function Sidebar({ presentationCount, section, onSectionChange, activeNav, onActiveNavChange, open, onClose }) {
+function Sidebar({ solutionCount, replayCount, section, onSectionChange, activeNav, onActiveNavChange, open, onClose }) {
   const items = [
     { id: 'overview', label: '首页', icon: FolderOpen, href: '#top' },
-    { id: 'presentations', label: 'PPT 方案', icon: FileText, href: '#library', count: presentationCount },
-    { id: 'recordings', label: '会议回放', icon: Video, href: '#library', count: recordings.length },
+    { id: 'presentations', label: '智能方案讲解', icon: FileText, href: '#library', count: solutionCount },
+    { id: 'recordings', label: '会议回放', icon: Video, href: '#library', count: replayCount },
   ];
 
   const navigate = (item) => {
@@ -121,8 +128,8 @@ function Topbar({ query, setQuery, onMenu }) {
         <input
           value={query}
           onChange={(event) => setQuery(event.target.value)}
-          placeholder="搜索课程、日期或方案资料..."
-          aria-label="搜索课程、日期或方案资料"
+          placeholder="搜索视频、PPT 回放或智能方案..."
+          aria-label="搜索视频、PPT 回放或智能方案"
         />
         <kbd>⌘ K</kbd>
       </div>
@@ -174,7 +181,7 @@ function Hero({ onBrowse, onAbout }) {
 function Stats({ presentationCount }) {
   const stats = [
     { value: recordings.length, label: '场实战会议回放', icon: Video, detail: '覆盖 6 期连续训练' },
-    { value: presentationCount || '待', label: '份产品方案资料', icon: FileText, detail: '方案库持续补充中' },
+    { value: presentationCount || '待', label: '份智能方案讲解', icon: FileText, detail: '三类方案持续补充中' },
     { value: '4', label: '阶段代理商路径', icon: ChartNoAxesCombined, detail: '从懂产品到促成交' },
   ];
   return (
@@ -279,7 +286,7 @@ function EmptyPpt() {
   );
 }
 
-function PresentationCard({ presentation, index, onRemove }) {
+function PresentationCard({ presentation, index, onRemove, openLabel = '打开方案' }) {
   const cover = presentation.cover || COVER_ASSETS[index % COVER_ASSETS.length];
   const monthLabel = presentation.publishedAt?.slice(0, 7).replace('-', '.');
   return (
@@ -288,7 +295,7 @@ function PresentationCard({ presentation, index, onRemove }) {
         <span className="presentation-index">{String(index + 1).padStart(2, '0')}{monthLabel && <small>{monthLabel}</small>}</span>
         <div className="presentation-card-meta">
           <span className="presentation-category"><Presentation /> {presentation.category || '产品方案'}</span>
-          {presentation.isCustom && (
+          {presentation.isCustom && onRemove && (
             <button className="presentation-remove" onClick={() => onRemove(presentation.id)} aria-label={`删除${presentation.title}`} title="删除自定义方案">
               <Trash2 />
             </button>
@@ -305,7 +312,7 @@ function PresentationCard({ presentation, index, onRemove }) {
         </a>
       </div>
       <a className="presentation-open" href={presentation.url} target="_blank" rel="noreferrer">
-        <span>打开方案</span><ArrowUpRight />
+        <span>{openLabel}</span><ArrowUpRight />
       </a>
     </article>
   );
@@ -314,6 +321,7 @@ function PresentationCard({ presentation, index, onRemove }) {
 function AddPresentationDialog({ open, onClose, onAdd }) {
   const [title, setTitle] = useState('');
   const [url, setUrl] = useState('');
+  const [group, setGroup] = useState('solution');
   const [category, setCategory] = useState('');
   const [month, setMonth] = useState(CURRENT_MONTH);
   const [error, setError] = useState('');
@@ -338,9 +346,10 @@ function AddPresentationDialog({ open, onClose, onAdd }) {
     try {
       const parsedUrl = new URL(cleanedUrl);
       if (!['http:', 'https:'].includes(parsedUrl.protocol)) throw new Error('invalid protocol');
-      onAdd({ title: cleanedTitle, url: parsedUrl.href, category: category.trim() || '自定义方案', publishedAt: month ? `${month}-01` : '' });
+      onAdd({ title: cleanedTitle, url: parsedUrl.href, group, category: category.trim() || '自定义方案', publishedAt: month ? `${month}-01` : '' });
       setTitle('');
       setUrl('');
+      setGroup('solution');
       setCategory('');
       setMonth(CURRENT_MONTH);
       setError('');
@@ -353,21 +362,27 @@ function AddPresentationDialog({ open, onClose, onAdd }) {
     <div className="dialog-backdrop" onMouseDown={(event) => event.target === event.currentTarget && onClose()}>
       <section className="add-dialog" role="dialog" aria-modal="true" aria-labelledby="add-presentation-title">
         <div className="add-dialog-head">
-          <div><span>ADD NEW SOLUTION</span><h3 id="add-presentation-title">新增 PPT 方案</h3></div>
+          <div><span>ADD NEW SOLUTION</span><h3 id="add-presentation-title">新增智能方案</h3></div>
           <button className="dialog-close" onClick={onClose} aria-label="关闭新增方案窗口"><X /></button>
         </div>
         <form onSubmit={submit} noValidate>
           <label>
             <span>方案名称</span>
-            <input autoFocus value={title} onChange={(event) => setTitle(event.target.value)} placeholder="输入 PPT 方案名称" />
+            <input autoFocus value={title} onChange={(event) => setTitle(event.target.value)} placeholder="输入智能方案名称" />
           </label>
           <label>
             <span>方案网址</span>
             <div className="url-input"><Link2 /><input value={url} onChange={(event) => setUrl(event.target.value)} placeholder="https://" inputMode="url" /></div>
           </label>
           <label>
-            <span>方案分类 <small>选填</small></span>
-            <input value={category} onChange={(event) => setCategory(event.target.value)} placeholder="例如：行业方案、代理商培训" />
+            <span>一级分类</span>
+            <select value={group} onChange={(event) => setGroup(event.target.value)}>
+              {SOLUTION_GROUPS.map((item) => <option key={item.id} value={item.id}>{item.label}</option>)}
+            </select>
+          </label>
+          <label>
+            <span>细分标签 <small>选填</small></span>
+            <input value={category} onChange={(event) => setCategory(event.target.value)} placeholder="例如：展厅方案、能源案例" />
           </label>
           <label>
             <span>方案月份 <small>用于倒序排列</small></span>
@@ -376,7 +391,7 @@ function AddPresentationDialog({ open, onClose, onAdd }) {
           {error && <p className="form-error" role="alert">{error}</p>}
           <div className="dialog-actions">
             <button type="button" className="dialog-cancel" onClick={onClose}>取消</button>
-            <button type="submit" className="dialog-submit"><Plus /> 添加到方案库</button>
+            <button type="submit" className="dialog-submit"><Plus /> 添加到智能方案</button>
           </div>
         </form>
       </section>
@@ -384,25 +399,64 @@ function AddPresentationDialog({ open, onClose, onAdd }) {
   );
 }
 
-function PresentationLibrary({ items, onAddClick, onRemove }) {
-  if (!items.length) return <div className="no-results"><Search /><h3>没有找到相关方案</h3><p>换一个方案名称试试。</p></div>;
+function ReplayTypeTabs({ active, onChange }) {
   return (
-    <section className="presentation-library" aria-label="PPT 方案列表">
+    <div className="replay-type-tabs" role="tablist" aria-label="会议回放类型">
+      <button role="tab" aria-selected={active === 'video'} className={active === 'video' ? 'is-active' : ''} onClick={() => onChange('video')}><Video /> 视频回放 <b>{String(recordings.length).padStart(2, '0')}</b></button>
+      <button role="tab" aria-selected={active === 'ppt'} className={active === 'ppt' ? 'is-active' : ''} onClick={() => onChange('ppt')}><Presentation /> PPT 回放 <b>{String(presentationReplays.length).padStart(2, '0')}</b></button>
+    </div>
+  );
+}
+
+function ReplayPresentationLibrary({ items }) {
+  return (
+    <section className="presentation-library replay-ppt-library" aria-label="PPT 回放列表">
       <div className="presentation-library-head">
-        <div><p className="section-kicker">PRESENTATION LIBRARY</p><h3>PPT 方案</h3></div>
+        <div><p className="section-kicker">TRAINING PRESENTATION REPLAY</p><h3>PPT 回放</h3></div>
+        <div className="presentation-library-actions"><p>快速回顾开营、训战和代理商培训中的演示材料。</p></div>
+      </div>
+      {items.length ? (
+        <div className="presentation-grid">
+          {items.map((presentation, index) => <PresentationCard key={presentation.id} presentation={presentation} index={index} openLabel="打开回放" />)}
+        </div>
+      ) : <div className="no-results"><Search /><h3>没有找到相关 PPT 回放</h3><p>换一个课程名称试试。</p></div>}
+    </section>
+  );
+}
+
+function SolutionLibrary({ items, onAddClick, onRemove }) {
+  const indexedItems = items.map((presentation, index) => ({ presentation, index }));
+  return (
+    <section className="presentation-library solution-library" aria-label="智能方案讲解列表">
+      <div className="presentation-library-head">
+        <div><p className="section-kicker">INTELLIGENT SOLUTION LIBRARY</p><h3>智能方案讲解</h3></div>
         <div className="presentation-library-actions">
-          <p>点击方案名称或“打开方案”，即可在新标签页查看完整内容。</p>
+          <p>按公司、解决方案和案例归档，快速匹配不同客户的沟通场景。</p>
           <button onClick={onAddClick}><Plus /> 新增方案</button>
         </div>
       </div>
-      <div className="presentation-grid">
-        {items.map((presentation, index) => <PresentationCard key={presentation.id} presentation={presentation} index={index} onRemove={onRemove} />)}
-      </div>
+      {items.length ? SOLUTION_GROUPS.map((group) => {
+        const groupItems = indexedItems.filter(({ presentation }) => (presentation.group || 'solution') === group.id);
+        if (!groupItems.length) return null;
+        return (
+          <section className="solution-group" key={group.id} aria-labelledby={`solution-group-${group.id}`}>
+            <div className="solution-group-head">
+              <span>{group.number}</span>
+              <div><h4 id={`solution-group-${group.id}`}>{group.label}</h4><p>{group.description}</p></div>
+              <b>{String(groupItems.length).padStart(2, '0')}</b>
+            </div>
+            <div className="presentation-grid">
+              {groupItems.map(({ presentation, index }) => <PresentationCard key={presentation.id} presentation={presentation} index={index} onRemove={onRemove} />)}
+            </div>
+          </section>
+        );
+      }) : <div className="no-results"><Search /><h3>没有找到相关智能方案</h3><p>换一个公司、行业或案例名称试试。</p></div>}
     </section>
   );
 }
 
 function Library({ presentationItems, section, query, onSectionChange, onAddClick, onRemove }) {
+  const [replayType, setReplayType] = useState('video');
   const normalized = query.trim().toLowerCase();
   const compactQuery = normalized.replace(/[^a-z0-9\u4e00-\u9fff]/g, '');
   const filteredRecordings = useMemo(() => recordings.filter((item) => {
@@ -410,24 +464,37 @@ function Library({ presentationItems, section, query, onSectionChange, onAddClic
     return source.includes(normalized) || source.replace(/[^a-z0-9\u4e00-\u9fff]/g, '').includes(compactQuery);
   }), [compactQuery, normalized]);
   const filteredPresentations = useMemo(() => presentationItems.filter((item) => {
-    const source = `${item.title} ${item.category || ''}`.toLowerCase();
+    const groupLabel = SOLUTION_GROUPS.find((group) => group.id === item.group)?.label || '';
+    const source = `${item.title} ${item.category || ''} ${groupLabel}`.toLowerCase();
     return source.includes(normalized) || source.replace(/[^a-z0-9\u4e00-\u9fff]/g, '').includes(compactQuery);
   }), [compactQuery, normalized, presentationItems]);
+  const filteredPresentationReplays = useMemo(() => presentationReplays.filter((item) => {
+    const source = `${item.title} ${item.category || ''} ${item.publishedAt || ''}`.toLowerCase();
+    return source.includes(normalized) || source.replace(/[^a-z0-9\u4e00-\u9fff]/g, '').includes(compactQuery);
+  }), [compactQuery, normalized]);
   const showRecordings = section !== 'presentations';
   const showPresentations = section !== 'recordings';
+  const showVideoReplay = section === 'all' || replayType === 'video';
+  const showPptReplay = section === 'all' || replayType === 'ppt';
 
   return (
     <section className="library" id="library">
       <div className="section-heading">
-        <div><p className="section-kicker">LEARNING RESOURCE CENTER</p><h2>{section === 'presentations' ? '销售方案库' : section === 'recordings' ? '代理商训战回放' : '最新学习资源'}</h2><p className="heading-desc">回看实战训练，查阅产品方案，把碎片经验沉淀为可复用的业务方法。</p></div>
+        <div><p className="section-kicker">LEARNING RESOURCE CENTER</p><h2>{section === 'presentations' ? '智能方案讲解' : section === 'recordings' ? '代理商训战回放' : '最新学习资源'}</h2><p className="heading-desc">回看视频与培训 PPT，查阅分类智能方案，把碎片经验沉淀为可复用的业务方法。</p></div>
         <div className="segment-control" aria-label="内容类型筛选">
-          {[['all', '全部'], ['recordings', '会议回放'], ['presentations', 'PPT 方案']].map(([id, label]) => (
+          {[['all', '全部'], ['recordings', '会议回放'], ['presentations', '智能方案讲解']].map(([id, label]) => (
             <button key={id} className={section === id ? 'is-active' : ''} onClick={() => onSectionChange(id)}>{label}</button>
           ))}
         </div>
       </div>
-      {showRecordings && <div className="recording-list">{filteredRecordings.length ? filteredRecordings.map((recording, index) => <RecordingRow key={recording.id} recording={recording} index={index} />) : <div className="no-results"><Search /><h3>没有找到相关课程</h3><p>换一个标题或日期试试。</p></div>}</div>}
-      {showPresentations && (presentationItems.length ? <PresentationLibrary items={filteredPresentations} onAddClick={onAddClick} onRemove={onRemove} /> : <EmptyPpt />)}
+      {showRecordings && (
+        <section className="replay-library" aria-label="会议回放资源">
+          {section === 'recordings' && <ReplayTypeTabs active={replayType} onChange={setReplayType} />}
+          {showVideoReplay && <div className="recording-list">{filteredRecordings.length ? filteredRecordings.map((recording, index) => <RecordingRow key={recording.id} recording={recording} index={index} />) : <div className="no-results"><Search /><h3>没有找到相关视频回放</h3><p>换一个标题或日期试试。</p></div>}</div>}
+          {showPptReplay && <ReplayPresentationLibrary items={filteredPresentationReplays} />}
+        </section>
+      )}
+      {showPresentations && (presentationItems.length ? <SolutionLibrary items={filteredPresentations} onAddClick={onAddClick} onRemove={onRemove} /> : <EmptyPpt />)}
     </section>
   );
 }
@@ -497,7 +564,7 @@ function App() {
 
   return (
     <div className="app-shell">
-      <Sidebar presentationCount={presentationItems.length} section={section} onSectionChange={changeSection} activeNav={activeNav} onActiveNavChange={setActiveNav} open={menuOpen} onClose={() => setMenuOpen(false)} />
+      <Sidebar solutionCount={presentationItems.length} replayCount={recordings.length + presentationReplays.length} section={section} onSectionChange={changeSection} activeNav={activeNav} onActiveNavChange={setActiveNav} open={menuOpen} onClose={() => setMenuOpen(false)} />
       <main>
         <Topbar query={query} setQuery={setQuery} onMenu={() => setMenuOpen(true)} />
         <Hero onBrowse={browse} onAbout={() => setActiveNav('overview')} />

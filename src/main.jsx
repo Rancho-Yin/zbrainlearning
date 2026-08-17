@@ -12,7 +12,13 @@ import {
   FileText,
   FolderOpen,
   GraduationCap,
+  Eye,
+  EyeOff,
   Link2,
+  LoaderCircle,
+  LockKeyhole,
+  LogIn,
+  LogOut,
   Menu,
   MessageSquareText,
   Play,
@@ -22,10 +28,13 @@ import {
   Sparkles,
   Target,
   Trash2,
+  UserPlus,
+  UserRound,
   Video,
   X,
   Zap,
 } from 'lucide-react';
+import { getCurrentUser, login, logout, register } from './auth';
 import { presentationReplays, presentations, recordings } from './data';
 import './styles.css';
 
@@ -119,7 +128,11 @@ function Sidebar({ solutionCount, replayCount, section, onSectionChange, activeN
   );
 }
 
-function Topbar({ query, setQuery, onMenu }) {
+function userLabel(user) {
+  return user?.display_name || user?.displayName || user?.name || user?.username || 'ZBrain 用户';
+}
+
+function Topbar({ query, setQuery, onMenu, user, onLogout }) {
   return (
     <header className="topbar">
       <button className="icon-button mobile-only" onClick={onMenu} aria-label="打开导航"><Menu /></button>
@@ -133,7 +146,10 @@ function Topbar({ query, setQuery, onMenu }) {
         />
         <kbd>⌘ K</kbd>
       </div>
-      <a className="top-link" href="#library">进入资源中心 <ArrowUpRight aria-hidden="true" /></a>
+      <div className="account-actions">
+        <div className="account-name" title={userLabel(user)}><UserRound aria-hidden="true" /><span>{userLabel(user)}</span></div>
+        <button className="logout-button" onClick={onLogout} title="退出登录"><LogOut aria-hidden="true" /><span>退出</span></button>
+      </div>
     </header>
   );
 }
@@ -505,7 +521,122 @@ function Footer() {
   );
 }
 
-function App() {
+function LoadingScreen() {
+  return (
+    <main className="auth-loading" aria-live="polite">
+      <img src={LOGO_SRC} alt="智显机器人" />
+      <LoaderCircle aria-hidden="true" />
+      <p>正在验证 ZBrain 账号...</p>
+    </main>
+  );
+}
+
+function LoginPage({ onAuthenticated, initialError = '', onRetry }) {
+  const [mode, setMode] = useState('login');
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [pending, setPending] = useState(false);
+  const [error, setError] = useState(initialError);
+
+  const changeMode = (nextMode) => {
+    setMode(nextMode);
+    setPassword('');
+    setConfirmPassword('');
+    setShowPassword(false);
+    setError('');
+  };
+
+  const submit = async (event) => {
+    event.preventDefault();
+    const cleanUsername = username.trim();
+    if (!cleanUsername || !password) {
+      setError('请输入 ZBrain 用户名和密码。');
+      return;
+    }
+    if (mode === 'register' && password !== confirmPassword) {
+      setError('两次输入的密码不一致。');
+      return;
+    }
+
+    setPending(true);
+    setError('');
+    try {
+      const user = mode === 'login'
+        ? await login(cleanUsername, password)
+        : await register(cleanUsername, password);
+      onAuthenticated(user || { username: cleanUsername });
+    } catch (requestError) {
+      setError(requestError instanceof Error ? requestError.message : '认证失败，请稍后重试。');
+    } finally {
+      setPending(false);
+    }
+  };
+
+  return (
+    <main className="auth-page">
+      <section className="auth-story" aria-label="智显机器人代理商赋能体系">
+        <div className="auth-story-grid" aria-hidden="true" />
+        <div className="auth-story-brand"><img src={LOGO_SRC} alt="智显机器人" /><span>AI训战中心</span></div>
+        <div className="auth-story-copy">
+          <h1>让学习能力，<br />成为代理商的成交能力。</h1>
+          <p>通过 ZBrain 统一账号进入产品学习、智能方案与会议回放，把知识快速转化为客户沟通和项目推进能力。</p>
+        </div>
+        <div className="auth-capability-list">
+          <span><b>01</b><strong>理解产品</strong><small>讲清产品价值</small></span>
+          <span><b>02</b><strong>匹配方案</strong><small>回应客户场景</small></span>
+          <span><b>03</b><strong>推进成交</strong><small>形成业务结果</small></span>
+        </div>
+        <p className="auth-story-footer">ZBRAIN · PARTNER ENABLEMENT SYSTEM</p>
+      </section>
+
+      <section className="auth-form-panel">
+        <div className="auth-form-wrap">
+          <div className="auth-mobile-brand"><img src={LOGO_SRC} alt="智显机器人" /><span>AI训战中心</span></div>
+          <div className="auth-heading">
+            <span>{mode === 'login' ? 'WELCOME BACK' : 'CREATE ZBRAIN ACCOUNT'}</span>
+            <h2>{mode === 'login' ? '登录 AI 训战中心' : '注册 ZBrain 账号'}</h2>
+            <p>{mode === 'login' ? '使用你的 ZBrain 账号继续学习。' : '注册后将自动登录并进入学习中心。'}</p>
+          </div>
+
+          <div className="auth-tabs" role="tablist" aria-label="账号认证方式">
+            <button type="button" role="tab" aria-selected={mode === 'login'} className={mode === 'login' ? 'is-active' : ''} onClick={() => changeMode('login')}>登录</button>
+            <button type="button" role="tab" aria-selected={mode === 'register'} className={mode === 'register' ? 'is-active' : ''} onClick={() => changeMode('register')}>注册账号</button>
+          </div>
+
+          <form className="auth-form" onSubmit={submit} noValidate>
+            <label>
+              <span>用户名</span>
+              <div className="auth-input"><UserRound aria-hidden="true" /><input autoComplete="username" value={username} onChange={(event) => setUsername(event.target.value)} placeholder="请输入 ZBrain 用户名" disabled={pending} autoFocus /></div>
+            </label>
+            <label>
+              <span>密码</span>
+              <div className="auth-input"><LockKeyhole aria-hidden="true" /><input type={showPassword ? 'text' : 'password'} autoComplete={mode === 'login' ? 'current-password' : 'new-password'} value={password} onChange={(event) => setPassword(event.target.value)} placeholder="请输入密码" disabled={pending} /><button type="button" onClick={() => setShowPassword((visible) => !visible)} aria-label={showPassword ? '隐藏密码' : '显示密码'}>{showPassword ? <EyeOff /> : <Eye />}</button></div>
+            </label>
+            {mode === 'register' && (
+              <label>
+                <span>确认密码</span>
+                <div className="auth-input"><LockKeyhole aria-hidden="true" /><input type={showPassword ? 'text' : 'password'} autoComplete="new-password" value={confirmPassword} onChange={(event) => setConfirmPassword(event.target.value)} placeholder="请再次输入密码" disabled={pending} /></div>
+              </label>
+            )}
+            {error && <div className="auth-error" role="alert"><span>{error}</span>{initialError && onRetry && <button type="button" onClick={onRetry}>重新验证</button>}</div>}
+            <button className="auth-submit" type="submit" disabled={pending}>
+              {pending ? <LoaderCircle className="is-spinning" /> : mode === 'login' ? <LogIn /> : <UserPlus />}
+              <span>{pending ? '正在连接 ZBrain...' : mode === 'login' ? '登录并进入学习中心' : '注册并进入学习中心'}</span>
+              {!pending && <ArrowRight />}
+            </button>
+          </form>
+
+          <div className="auth-trust"><BadgeCheck /><span>账号由 ZBrain 统一管理，训战中心不会保存你的密码。</span></div>
+          <a className="auth-official-link" href="https://www.zbrain.cn" target="_blank" rel="noreferrer">访问智显机器人官网 <ArrowUpRight /></a>
+        </div>
+      </section>
+    </main>
+  );
+}
+
+function AppContent({ user, onLogout }) {
   const [section, setSection] = useState('all');
   const [activeNav, setActiveNav] = useState('overview');
   const [query, setQuery] = useState('');
@@ -566,7 +697,7 @@ function App() {
     <div className="app-shell">
       <Sidebar solutionCount={presentationItems.length} replayCount={recordings.length + presentationReplays.length} section={section} onSectionChange={changeSection} activeNav={activeNav} onActiveNavChange={setActiveNav} open={menuOpen} onClose={() => setMenuOpen(false)} />
       <main>
-        <Topbar query={query} setQuery={setQuery} onMenu={() => setMenuOpen(true)} />
+        <Topbar query={query} setQuery={setQuery} onMenu={() => setMenuOpen(true)} user={user} onLogout={onLogout} />
         <Hero onBrowse={browse} onAbout={() => setActiveNav('overview')} />
         <div className="content-wrap"><Stats presentationCount={presentationItems.length} /><About /></div>
         <Enablement />
@@ -575,6 +706,30 @@ function App() {
       <AddPresentationDialog open={addDialogOpen} onClose={() => setAddDialogOpen(false)} onAdd={addPresentation} />
     </div>
   );
+}
+
+function App() {
+  const [authState, setAuthState] = useState({ status: 'loading', user: null, error: '' });
+
+  const verifySession = React.useCallback(() => {
+    setAuthState((current) => ({ ...current, status: 'loading', error: '' }));
+    getCurrentUser()
+      .then((user) => setAuthState({ status: user ? 'authenticated' : 'anonymous', user, error: '' }))
+      .catch((error) => setAuthState({ status: 'anonymous', user: null, error: error instanceof Error ? error.message : '暂时无法连接 ZBrain 认证服务。' }));
+  }, []);
+
+  React.useEffect(() => {
+    verifySession();
+  }, [verifySession]);
+
+  const signOut = async () => {
+    await logout();
+    setAuthState({ status: 'anonymous', user: null, error: '' });
+  };
+
+  if (authState.status === 'loading') return <LoadingScreen />;
+  if (!authState.user) return <LoginPage initialError={authState.error} onRetry={verifySession} onAuthenticated={(user) => setAuthState({ status: 'authenticated', user, error: '' })} />;
+  return <AppContent user={authState.user} onLogout={signOut} />;
 }
 
 createRoot(document.getElementById('root')).render(<React.StrictMode><App /></React.StrictMode>);

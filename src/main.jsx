@@ -634,7 +634,7 @@ function LoginPage({ onAuthenticated, initialError = '', onRetry }) {
                   <div className="auth-input"><LockKeyhole aria-hidden="true" /><input type={showPassword ? 'text' : 'password'} autoComplete="new-password" value={confirmPassword} onChange={(event) => setConfirmPassword(event.target.value)} placeholder="请再次输入密码" disabled={pending} /></div>
                 </label>
                 <label>
-                  <span>邀请码</span>
+                  <span className="invite-label">邀请码（请联系孙文雪：13591738060 程鹏：18518686565）</span>
                   <div className="auth-input"><KeyRound aria-hidden="true" /><input autoComplete="off" value={inviteCode} onChange={(event) => setInviteCode(event.target.value)} placeholder="请输入邀请码" disabled={pending} /></div>
                 </label>
               </>

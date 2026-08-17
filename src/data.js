@@ -1,7 +1,8 @@
 export const recordings = [
   {
     id: '2026-08-08',
-    title: '智显机器人 AI 训战营第6期',
+    title: '教育AI新机遇',
+    summary: '8月培训开场；教育AI解决方案；智显AI基础（三）；销售+盒子报价',
     date: '2026-08-08',
     time: '13:45',
     url: 'https://meeting.tencent.com/crm/KebxgxAke0',
@@ -10,7 +11,8 @@ export const recordings = [
   },
   {
     id: '2026-07-31',
-    title: '智显机器人 AI 训战营第5期',
+    title: '能源项目介绍：内蒙电力',
+    summary: '能源项目案例分享开场引导；内蒙电力案例分享；展厅AI系统链路分享；能源行业 AI 解决方案；AI 基础知识',
     date: '2026-07-31',
     time: '13:50',
     url: 'https://meeting.tencent.com/crm/NobdbOqa8a',
@@ -18,7 +20,8 @@ export const recordings = [
   },
   {
     id: '2026-07-24',
-    title: '智显机器人 AI 训战营第4期',
+    title: '嘉宾代理商论坛讨论连线',
+    summary: 'AI时代的场域营销；同益未来教育学社发起人；辽宁明嘉总经理；北京魔力深思总经理',
     date: '2026-07-24',
     time: '13:50',
     url: 'https://meeting.tencent.com/crm/2O1EG0r377',
@@ -26,7 +29,8 @@ export const recordings = [
   },
   {
     id: '2026-07-17',
-    title: '智显机器人 AI 训战营第3期',
+    title: '学科大模型介绍：AI科普课',
+    summary: '科金大厦展厅项目案例；学科大模型案例介绍；智显AI生成大模型技术简介；AI科普课堂；AI销售小课堂：客户洞察',
     date: '2026-07-17',
     time: '13:41',
     url: 'https://meeting.tencent.com/crm/2kna8Z3R07',
@@ -34,7 +38,8 @@ export const recordings = [
   },
   {
     id: '2026-07-10',
-    title: '智显机器人 AI 训战营第2期',
+    title: '展厅案例分享：吉大正元智脑新标杆',
+    summary: '智显机器人AI展厅方案；吉大正元AI智能展示方案介绍；吉大正元智能展厅：定义AI空间“智脑”新标杆；AI销售小课堂：市场嗅觉',
     date: '2026-07-10',
     time: '13:47',
     url: 'https://meeting.tencent.com/crm/2qn1n9G517',
@@ -42,7 +47,8 @@ export const recordings = [
   },
   {
     id: '2026-07-03',
-    title: '智显机器人 AI 训战营第1期',
+    title: '开营介绍：技术云边端及AI行业趋势介绍，营销及课程预告',
+    summary: '公司战略与开营；技术底座与云边端方案；AI行业发展趋势；IN BOX解决方案分享；AI营销智能体极致讲解；案例汇总与后续课程预告',
     date: '2026-07-03',
     time: '13:48',
     url: 'https://meeting.tencent.com/crm/K0JOQxG0b5',

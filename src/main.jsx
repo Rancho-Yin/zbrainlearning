@@ -14,6 +14,7 @@ import {
   GraduationCap,
   Eye,
   EyeOff,
+  KeyRound,
   Link2,
   LoaderCircle,
   LockKeyhole,
@@ -287,7 +288,12 @@ function RecordingRow({ recording, index }) {
       <div className="row-index">{String(index + 1).padStart(2, '0')}</div>
       <div className="row-line"><span /></div>
       <div className="row-date"><strong>{dateFormatter.format(date).replace('星期', '周')}</strong><span>{recording.date}</span></div>
-      <div className="row-content"><div className="type-label"><Video /> 代理商训战回放</div><h3>{recording.title}</h3><p><Clock3 /> {recording.time} 开始</p></div>
+      <div className="row-content">
+        <div className="type-label"><Video /> {recording.phase.replaceAll(' ', '')} · 代理商训战回放</div>
+        <h3>{recording.title}</h3>
+        <p className="recording-summary">{recording.summary}</p>
+        <p className="recording-time"><Clock3 /> {recording.time} 开始</p>
+      </div>
       <a className="play-button" href={recording.url} target="_blank" rel="noreferrer"><Play fill="currentColor" /><span>观看回放</span><ArrowUpRight /></a>
     </article>
   );
@@ -476,7 +482,7 @@ function Library({ presentationItems, section, query, onSectionChange, onAddClic
   const normalized = query.trim().toLowerCase();
   const compactQuery = normalized.replace(/[^a-z0-9\u4e00-\u9fff]/g, '');
   const filteredRecordings = useMemo(() => recordings.filter((item) => {
-    const source = `${item.title} ${item.date} ${item.phase}`.toLowerCase();
+    const source = `${item.title} ${item.summary || ''} ${item.date} ${item.phase}`.toLowerCase();
     return source.includes(normalized) || source.replace(/[^a-z0-9\u4e00-\u9fff]/g, '').includes(compactQuery);
   }), [compactQuery, normalized]);
   const filteredPresentations = useMemo(() => presentationItems.filter((item) => {
@@ -536,6 +542,7 @@ function LoginPage({ onAuthenticated, initialError = '', onRetry }) {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [inviteCode, setInviteCode] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState(initialError);
@@ -544,6 +551,7 @@ function LoginPage({ onAuthenticated, initialError = '', onRetry }) {
     setMode(nextMode);
     setPassword('');
     setConfirmPassword('');
+    setInviteCode('');
     setShowPassword(false);
     setError('');
   };
@@ -559,13 +567,18 @@ function LoginPage({ onAuthenticated, initialError = '', onRetry }) {
       setError('两次输入的密码不一致。');
       return;
     }
+    const cleanInviteCode = inviteCode.trim();
+    if (mode === 'register' && !cleanInviteCode) {
+      setError('请输入邀请码。');
+      return;
+    }
 
     setPending(true);
     setError('');
     try {
       const user = mode === 'login'
         ? await login(cleanUsername, password)
-        : await register(cleanUsername, password);
+        : await register(cleanUsername, password, cleanInviteCode);
       onAuthenticated(user || { username: cleanUsername });
     } catch (requestError) {
       setError(requestError instanceof Error ? requestError.message : '认证失败，请稍后重试。');
@@ -592,7 +605,7 @@ function LoginPage({ onAuthenticated, initialError = '', onRetry }) {
       </section>
 
       <section className="auth-form-panel">
-        <div className="auth-form-wrap">
+        <div className={`auth-form-wrap ${mode === 'register' ? 'is-register' : ''}`}>
           <div className="auth-mobile-brand"><img src={LOGO_SRC} alt="智显机器人" /><span>AI训战中心</span></div>
           <div className="auth-heading">
             <span>{mode === 'login' ? 'WELCOME BACK' : 'CREATE ZBRAIN ACCOUNT'}</span>
@@ -615,10 +628,16 @@ function LoginPage({ onAuthenticated, initialError = '', onRetry }) {
               <div className="auth-input"><LockKeyhole aria-hidden="true" /><input type={showPassword ? 'text' : 'password'} autoComplete={mode === 'login' ? 'current-password' : 'new-password'} value={password} onChange={(event) => setPassword(event.target.value)} placeholder="请输入密码" disabled={pending} /><button type="button" onClick={() => setShowPassword((visible) => !visible)} aria-label={showPassword ? '隐藏密码' : '显示密码'}>{showPassword ? <EyeOff /> : <Eye />}</button></div>
             </label>
             {mode === 'register' && (
-              <label>
-                <span>确认密码</span>
-                <div className="auth-input"><LockKeyhole aria-hidden="true" /><input type={showPassword ? 'text' : 'password'} autoComplete="new-password" value={confirmPassword} onChange={(event) => setConfirmPassword(event.target.value)} placeholder="请再次输入密码" disabled={pending} /></div>
-              </label>
+              <>
+                <label>
+                  <span>确认密码</span>
+                  <div className="auth-input"><LockKeyhole aria-hidden="true" /><input type={showPassword ? 'text' : 'password'} autoComplete="new-password" value={confirmPassword} onChange={(event) => setConfirmPassword(event.target.value)} placeholder="请再次输入密码" disabled={pending} /></div>
+                </label>
+                <label>
+                  <span>邀请码</span>
+                  <div className="auth-input"><KeyRound aria-hidden="true" /><input autoComplete="off" value={inviteCode} onChange={(event) => setInviteCode(event.target.value)} placeholder="请输入邀请码" disabled={pending} /></div>
+                </label>
+              </>
             )}
             {error && <div className="auth-error" role="alert"><span>{error}</span>{initialError && onRetry && <button type="button" onClick={onRetry}>重新验证</button>}</div>}
             <button className="auth-submit" type="submit" disabled={pending}>

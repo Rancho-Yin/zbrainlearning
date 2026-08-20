@@ -46,7 +46,9 @@ const COVER_ASSETS = [
   'assets/covers/partner-training.png',
 ];
 const PRESENTATION_STORAGE_KEY = 'zbrainlearning-custom-presentations-v1';
+const RECORDING_STORAGE_KEY = 'zbrainlearning-custom-recordings-v1';
 const CURRENT_MONTH = new Date().toISOString().slice(0, 7);
+const CURRENT_DATE = new Date().toLocaleDateString('en-CA');
 const SOLUTION_GROUPS = [
   { id: 'company', number: '01', label: '公司介绍', description: '了解智显机器人与合作伙伴的业务能力、品牌定位与核心优势。' },
   { id: 'solution', number: '02', label: '解决方案介绍', description: '按展厅、教育、能源与 AIGC 等场景查找可直接讲解的方案。' },
@@ -60,6 +62,17 @@ function loadCustomPresentations() {
     const value = JSON.parse(localStorage.getItem(PRESENTATION_STORAGE_KEY) || '[]');
     return Array.isArray(value)
       ? value.filter((item) => item?.id && item?.title && item?.url).map((item) => ({ ...item, group: item.group || 'solution' }))
+      : [];
+  } catch {
+    return [];
+  }
+}
+
+function loadCustomRecordings() {
+  try {
+    const value = JSON.parse(localStorage.getItem(RECORDING_STORAGE_KEY) || '[]');
+    return Array.isArray(value)
+      ? value.filter((item) => item?.id && item?.title && item?.url && item?.date)
       : [];
   } catch {
     return [];
@@ -195,9 +208,9 @@ function Hero({ onBrowse, onAbout }) {
   );
 }
 
-function Stats({ presentationCount }) {
+function Stats({ presentationCount, recordingCount }) {
   const stats = [
-    { value: recordings.length, label: '场实战会议回放', icon: Video, detail: '覆盖 6 期连续训练' },
+    { value: recordingCount, label: '场实战会议回放', icon: Video, detail: '训战内容持续补充中' },
     { value: presentationCount || '待', label: '份智能方案讲解', icon: FileText, detail: '三类方案持续补充中' },
     { value: '4', label: '阶段代理商路径', icon: ChartNoAxesCombined, detail: '从懂产品到促成交' },
   ];
@@ -281,7 +294,7 @@ function Enablement() {
   );
 }
 
-function RecordingRow({ recording, index }) {
+function RecordingRow({ recording, index, onRemove }) {
   const date = new Date(`${recording.date}T12:00:00`);
   return (
     <article className={`recording-row ${recording.featured ? 'is-featured' : ''}`}>
@@ -289,13 +302,115 @@ function RecordingRow({ recording, index }) {
       <div className="row-line"><span /></div>
       <div className="row-date"><strong>{dateFormatter.format(date).replace('星期', '周')}</strong><span>{recording.date}</span></div>
       <div className="row-content">
-        <div className="type-label"><Video /> {recording.phase.replaceAll(' ', '')} · 代理商训战回放</div>
+        <div className="type-label">
+          <Video /> {recording.phase.replaceAll(' ', '')} · 代理商训战回放
+          {recording.isCustom && onRemove && (
+            <button className="recording-remove" onClick={() => onRemove(recording.id)} aria-label={`删除${recording.title}`} title="删除自定义视频">
+              <Trash2 />
+            </button>
+          )}
+        </div>
         <h3>{recording.title}</h3>
         <p className="recording-summary">{recording.summary}</p>
         <p className="recording-time"><Clock3 /> {recording.time} 开始</p>
       </div>
       <a className="play-button" href={recording.url} target="_blank" rel="noreferrer"><Play fill="currentColor" /><span>观看回放</span><ArrowUpRight /></a>
     </article>
+  );
+}
+
+function AddRecordingDialog({ open, onClose, onAdd }) {
+  const [title, setTitle] = useState('');
+  const [url, setUrl] = useState('');
+  const [date, setDate] = useState(CURRENT_DATE);
+  const [time, setTime] = useState('14:00');
+  const [phase, setPhase] = useState('');
+  const [summary, setSummary] = useState('');
+  const [error, setError] = useState('');
+
+  React.useEffect(() => {
+    if (!open) return undefined;
+    const closeOnEscape = (event) => event.key === 'Escape' && onClose();
+    window.addEventListener('keydown', closeOnEscape);
+    return () => window.removeEventListener('keydown', closeOnEscape);
+  }, [onClose, open]);
+
+  if (!open) return null;
+
+  const submit = (event) => {
+    event.preventDefault();
+    const cleanedTitle = title.trim();
+    const cleanedUrl = url.trim().replace(/[，,。；;]+$/, '');
+    const cleanedSummary = summary.trim();
+    if (!cleanedTitle || !cleanedUrl || !date || !cleanedSummary) {
+      setError('请填写视频名称、回放网址、培训日期和主题概览。');
+      return;
+    }
+    try {
+      const parsedUrl = new URL(cleanedUrl);
+      if (!['http:', 'https:'].includes(parsedUrl.protocol)) throw new Error('invalid protocol');
+      onAdd({
+        title: cleanedTitle,
+        url: parsedUrl.href,
+        date,
+        time: time || '00:00',
+        phase: phase.trim() || '新增课程',
+        summary: cleanedSummary,
+      });
+      setTitle('');
+      setUrl('');
+      setDate(CURRENT_DATE);
+      setTime('14:00');
+      setPhase('');
+      setSummary('');
+      setError('');
+    } catch {
+      setError('请输入以 http:// 或 https:// 开头的有效回放网址。');
+    }
+  };
+
+  return (
+    <div className="dialog-backdrop" onMouseDown={(event) => event.target === event.currentTarget && onClose()}>
+      <section className="add-dialog add-recording-dialog" role="dialog" aria-modal="true" aria-labelledby="add-recording-title">
+        <div className="add-dialog-head">
+          <div><span>ADD VIDEO REPLAY</span><h3 id="add-recording-title">新增视频回放</h3></div>
+          <button className="dialog-close" onClick={onClose} aria-label="关闭新增视频窗口"><X /></button>
+        </div>
+        <form onSubmit={submit} noValidate>
+          <label>
+            <span>视频名称</span>
+            <input autoFocus value={title} onChange={(event) => setTitle(event.target.value)} placeholder="输入本期培训主题" />
+          </label>
+          <label>
+            <span>回放网址</span>
+            <div className="url-input"><Link2 /><input value={url} onChange={(event) => setUrl(event.target.value)} placeholder="https://meeting.tencent.com/..." inputMode="url" /></div>
+          </label>
+          <div className="dialog-field-row">
+            <label>
+              <span>培训日期</span>
+              <input type="date" value={date} onChange={(event) => setDate(event.target.value)} />
+            </label>
+            <label>
+              <span>开始时间 <small>选填</small></span>
+              <input type="time" value={time} onChange={(event) => setTime(event.target.value)} />
+            </label>
+          </div>
+          <label>
+            <span>课程期数 <small>选填</small></span>
+            <input value={phase} onChange={(event) => setPhase(event.target.value)} placeholder="例如：第 7 期" />
+          </label>
+          <label>
+            <span>培训主题概览</span>
+            <textarea value={summary} onChange={(event) => setSummary(event.target.value)} placeholder="填写本期涉及的产品、方案、案例或销售方法，便于代理商快速了解内容。" rows="4" />
+          </label>
+          {error && <p className="form-error" role="alert">{error}</p>}
+          <div className="dialog-actions">
+            <button type="button" className="dialog-cancel" onClick={onClose}>取消</button>
+            <button type="submit" className="dialog-submit"><Plus /> 添加到视频回放</button>
+          </div>
+        </form>
+      </section>
+    </div>
   );
 }
 
@@ -421,12 +536,29 @@ function AddPresentationDialog({ open, onClose, onAdd }) {
   );
 }
 
-function ReplayTypeTabs({ active, onChange }) {
+function ReplayTypeTabs({ active, onChange, recordingCount }) {
   return (
     <div className="replay-type-tabs" role="tablist" aria-label="会议回放类型">
-      <button role="tab" aria-selected={active === 'video'} className={active === 'video' ? 'is-active' : ''} onClick={() => onChange('video')}><Video /> 视频回放 <b>{String(recordings.length).padStart(2, '0')}</b></button>
+      <button role="tab" aria-selected={active === 'video'} className={active === 'video' ? 'is-active' : ''} onClick={() => onChange('video')}><Video /> 视频回放 <b>{String(recordingCount).padStart(2, '0')}</b></button>
       <button role="tab" aria-selected={active === 'ppt'} className={active === 'ppt' ? 'is-active' : ''} onClick={() => onChange('ppt')}><Presentation /> PPT 回放 <b>{String(presentationReplays.length).padStart(2, '0')}</b></button>
     </div>
+  );
+}
+
+function VideoReplayLibrary({ items, onAddClick, onRemove }) {
+  return (
+    <section className="video-replay-library" aria-label="视频回放列表">
+      <div className="presentation-library-head video-library-head">
+        <div><p className="section-kicker">TRAINING VIDEO REPLAY</p><h3>视频回放</h3></div>
+        <div className="presentation-library-actions">
+          <p>录入会议回放链接和培训主题信息，持续沉淀代理商训战内容。</p>
+          <button onClick={onAddClick}><Plus /> 添加视频</button>
+        </div>
+      </div>
+      <div className="recording-list">
+        {items.length ? items.map((recording, index) => <RecordingRow key={recording.id} recording={recording} index={index} onRemove={onRemove} />) : <div className="no-results"><Search /><h3>没有找到相关视频回放</h3><p>换一个标题或日期试试。</p></div>}
+      </div>
+    </section>
   );
 }
 
@@ -477,14 +609,14 @@ function SolutionLibrary({ items, onAddClick, onRemove }) {
   );
 }
 
-function Library({ presentationItems, section, query, onSectionChange, onAddClick, onRemove }) {
+function Library({ presentationItems, recordingItems, section, query, onSectionChange, onAddPresentationClick, onRemovePresentation, onAddRecordingClick, onRemoveRecording }) {
   const [replayType, setReplayType] = useState('video');
   const normalized = query.trim().toLowerCase();
   const compactQuery = normalized.replace(/[^a-z0-9\u4e00-\u9fff]/g, '');
-  const filteredRecordings = useMemo(() => recordings.filter((item) => {
+  const filteredRecordings = useMemo(() => recordingItems.filter((item) => {
     const source = `${item.title} ${item.summary || ''} ${item.date} ${item.phase}`.toLowerCase();
     return source.includes(normalized) || source.replace(/[^a-z0-9\u4e00-\u9fff]/g, '').includes(compactQuery);
-  }), [compactQuery, normalized]);
+  }), [compactQuery, normalized, recordingItems]);
   const filteredPresentations = useMemo(() => presentationItems.filter((item) => {
     const groupLabel = SOLUTION_GROUPS.find((group) => group.id === item.group)?.label || '';
     const source = `${item.title} ${item.category || ''} ${groupLabel}`.toLowerCase();
@@ -511,12 +643,12 @@ function Library({ presentationItems, section, query, onSectionChange, onAddClic
       </div>
       {showRecordings && (
         <section className="replay-library" aria-label="会议回放资源">
-          {section === 'recordings' && <ReplayTypeTabs active={replayType} onChange={setReplayType} />}
-          {showVideoReplay && <div className="recording-list">{filteredRecordings.length ? filteredRecordings.map((recording, index) => <RecordingRow key={recording.id} recording={recording} index={index} />) : <div className="no-results"><Search /><h3>没有找到相关视频回放</h3><p>换一个标题或日期试试。</p></div>}</div>}
+          {section === 'recordings' && <ReplayTypeTabs active={replayType} onChange={setReplayType} recordingCount={recordingItems.length} />}
+          {showVideoReplay && <VideoReplayLibrary items={filteredRecordings} onAddClick={onAddRecordingClick} onRemove={onRemoveRecording} />}
           {showPptReplay && <ReplayPresentationLibrary items={filteredPresentationReplays} />}
         </section>
       )}
-      {showPresentations && (presentationItems.length ? <SolutionLibrary items={filteredPresentations} onAddClick={onAddClick} onRemove={onRemove} /> : <EmptyPpt />)}
+      {showPresentations && (presentationItems.length ? <SolutionLibrary items={filteredPresentations} onAddClick={onAddPresentationClick} onRemove={onRemovePresentation} /> : <EmptyPpt />)}
     </section>
   );
 }
@@ -661,15 +793,25 @@ function AppContent({ user, onLogout }) {
   const [query, setQuery] = useState('');
   const [menuOpen, setMenuOpen] = useState(false);
   const [addDialogOpen, setAddDialogOpen] = useState(false);
+  const [addRecordingDialogOpen, setAddRecordingDialogOpen] = useState(false);
   const [customPresentations, setCustomPresentations] = useState(loadCustomPresentations);
+  const [customRecordings, setCustomRecordings] = useState(loadCustomRecordings);
   const presentationItems = useMemo(() => [...presentations, ...customPresentations]
     .map((item, index) => ({ item, index, time: item.publishedAt ? Date.parse(item.publishedAt) : 0 }))
     .sort((left, right) => right.time - left.time || left.index - right.index)
     .map(({ item }) => item), [customPresentations]);
+  const recordingItems = useMemo(() => [...recordings, ...customRecordings]
+    .map((item, index) => ({ item, index, time: Date.parse(`${item.date}T${item.time || '00:00'}:00`) || 0 }))
+    .sort((left, right) => right.time - left.time || left.index - right.index)
+    .map(({ item }) => item), [customRecordings]);
 
   React.useEffect(() => {
     localStorage.setItem(PRESENTATION_STORAGE_KEY, JSON.stringify(customPresentations));
   }, [customPresentations]);
+
+  React.useEffect(() => {
+    localStorage.setItem(RECORDING_STORAGE_KEY, JSON.stringify(customRecordings));
+  }, [customRecordings]);
 
   React.useEffect(() => {
     const onKeyDown = (event) => {
@@ -712,17 +854,34 @@ function AppContent({ user, onLogout }) {
     setCustomPresentations((current) => current.filter((presentation) => presentation.id !== id));
   };
 
+  const addRecording = (item) => {
+    setCustomRecordings((current) => [...current, {
+      ...item,
+      id: `custom-recording-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+      isCustom: true,
+    }]);
+    setQuery('');
+    changeSection('recordings');
+    setAddRecordingDialogOpen(false);
+    requestAnimationFrame(() => document.querySelector('.video-replay-library')?.scrollIntoView({ behavior: 'smooth' }));
+  };
+
+  const removeRecording = (id) => {
+    setCustomRecordings((current) => current.filter((recording) => recording.id !== id));
+  };
+
   return (
     <div className="app-shell">
-      <Sidebar solutionCount={presentationItems.length} replayCount={recordings.length + presentationReplays.length} section={section} onSectionChange={changeSection} activeNav={activeNav} onActiveNavChange={setActiveNav} open={menuOpen} onClose={() => setMenuOpen(false)} />
+      <Sidebar solutionCount={presentationItems.length} replayCount={recordingItems.length + presentationReplays.length} section={section} onSectionChange={changeSection} activeNav={activeNav} onActiveNavChange={setActiveNav} open={menuOpen} onClose={() => setMenuOpen(false)} />
       <main>
         <Topbar query={query} setQuery={setQuery} onMenu={() => setMenuOpen(true)} user={user} onLogout={onLogout} />
         <Hero onBrowse={browse} onAbout={() => setActiveNav('overview')} />
-        <div className="content-wrap"><Stats presentationCount={presentationItems.length} /><About /></div>
+        <div className="content-wrap"><Stats presentationCount={presentationItems.length} recordingCount={recordingItems.length} /><About /></div>
         <Enablement />
-        <div className="content-wrap"><Library presentationItems={presentationItems} section={section} query={query} onSectionChange={changeSection} onAddClick={() => setAddDialogOpen(true)} onRemove={removePresentation} /><Footer /></div>
+        <div className="content-wrap"><Library presentationItems={presentationItems} recordingItems={recordingItems} section={section} query={query} onSectionChange={changeSection} onAddPresentationClick={() => setAddDialogOpen(true)} onRemovePresentation={removePresentation} onAddRecordingClick={() => setAddRecordingDialogOpen(true)} onRemoveRecording={removeRecording} /><Footer /></div>
       </main>
       <AddPresentationDialog open={addDialogOpen} onClose={() => setAddDialogOpen(false)} onAdd={addPresentation} />
+      <AddRecordingDialog open={addRecordingDialogOpen} onClose={() => setAddRecordingDialogOpen(false)} onAdd={addRecording} />
     </div>
   );
 }

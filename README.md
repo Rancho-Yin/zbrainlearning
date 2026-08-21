@@ -24,4 +24,10 @@ npm run dev
 
 页面会按“公司介绍 / 解决方案介绍 / 案例介绍”自动归档；标题和“打开方案”都会在新标签页打开对应链接。PPT 回放仍支持 `publishedAt`，并按时间从近到远展示。
 
-页面中的“新增方案”可直接录入名称、网址和三类归档，并将内容保存在当前浏览器。由于 GitHub Pages 是静态网站，这类临时新增内容不会同步到其他设备；需要向所有访问者长期发布的方案，应继续维护在 `src/data.js` 并提交到仓库。
+## 全账号共享发布
+
+`yinze1` 是平台超级管理员。超级管理员新增或删除方案、生态方案和视频回放后，网站会把内容发布到 `public/shared-content.json`；GitHub Pages 完成部署后，其他 ZBrain 账号会自动读取同一份数据。
+
+首次使用时，以 `yinze1` 登录并打开“超级管理员 / 全账号共享”，配置只授权 `Rancho-Yin/zbrainlearning` 仓库且具备 `Contents: Read and write` 权限的 GitHub Fine-grained Token。令牌仅保存在当前标签页的 `sessionStorage`，不会写入源码或构建产物；关闭浏览器后需要重新配置。
+
+仓库和 GitHub Pages 均为公开资源，因此共享文件中的方案名称、外部链接和视频链接也属于公开信息。需要严格保密的资料应迁移到受 ZBrain 登录保护的后端接口。

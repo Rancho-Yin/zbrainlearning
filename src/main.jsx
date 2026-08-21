@@ -9,7 +9,7 @@ import {
   ChartNoAxesCombined,
   ChevronRight,
   Clock3,
-  Copy,
+  CloudUpload,
   FileText,
   FolderOpen,
   GraduationCap,
@@ -27,9 +27,9 @@ import {
   Play,
   Plus,
   Presentation,
+  RefreshCw,
   Search,
-  Share2,
-  Smartphone,
+  ShieldCheck,
   Sparkles,
   Target,
   Trash2,
@@ -41,6 +41,15 @@ import {
 } from 'lucide-react';
 import { getCurrentUser, login, logout, register } from './auth';
 import { presentationReplays, presentations, recordings } from './data';
+import {
+  clearPublishingToken,
+  getPublishingToken,
+  isSuperAdmin,
+  loadSharedContent,
+  publishSharedContent,
+  savePublishingToken,
+  validatePublishingToken,
+} from './github-content';
 import './styles.css';
 
 const LOGO_SRC = `${import.meta.env.BASE_URL}assets/zhixian-robot-logo.png`;
@@ -51,7 +60,6 @@ const COVER_ASSETS = [
 ];
 const PRESENTATION_STORAGE_KEY = 'zbrainlearning-custom-presentations-v1';
 const RECORDING_STORAGE_KEY = 'zbrainlearning-custom-recordings-v1';
-const SYNC_HASH_PREFIX = '#sync=';
 const CURRENT_MONTH = new Date().toISOString().slice(0, 7);
 const CURRENT_DATE = new Date().toLocaleDateString('en-CA');
 const CUSTOM_GROUP_VALUE = '__custom_group__';
@@ -86,23 +94,6 @@ const LIBRARY_CONFIG = {
 
 const assetUrl = (path) => `${import.meta.env.BASE_URL}${path}`;
 
-function encodeSyncPayload(payload) {
-  const bytes = new TextEncoder().encode(JSON.stringify(payload));
-  let binary = '';
-  bytes.forEach((byte) => { binary += String.fromCharCode(byte); });
-  return btoa(binary).replaceAll('+', '-').replaceAll('/', '_').replace(/=+$/, '');
-}
-
-function decodeSyncPayload(value) {
-  const base64 = value.replaceAll('-', '+').replaceAll('_', '/');
-  const padded = base64.padEnd(Math.ceil(base64.length / 4) * 4, '=');
-  const binary = atob(padded);
-  const bytes = Uint8Array.from(binary, (character) => character.charCodeAt(0));
-  const payload = JSON.parse(new TextDecoder().decode(bytes));
-  if (payload?.version !== 1) throw new Error('unsupported sync version');
-  return payload;
-}
-
 function isWebUrl(value) {
   try {
     return ['http:', 'https:'].includes(new URL(value).protocol);
@@ -114,6 +105,7 @@ function isWebUrl(value) {
 function normalizeSyncedPresentations(value) {
   if (!Array.isArray(value)) return [];
   return value.filter((item) => item?.title && isWebUrl(item?.url)).map((item) => ({
+    id: item.id ? String(item.id).slice(0, 160) : `shared-presentation-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
     title: String(item.title).slice(0, 160),
     url: String(item.url),
     library: item.library === 'ecosystem' ? 'ecosystem' : 'intelligent',
@@ -123,22 +115,25 @@ function normalizeSyncedPresentations(value) {
     category: String(item.category || '自定义方案').slice(0, 100),
     publishedAt: /^\d{4}-\d{2}-\d{2}$/.test(item.publishedAt || '') ? item.publishedAt : '',
     cover: COVER_ASSETS.includes(item.cover) ? item.cover : COVER_ASSETS[0],
+    isCustom: true,
   }));
 }
 
 function normalizeSyncedRecordings(value) {
   if (!Array.isArray(value)) return [];
   return value.filter((item) => item?.title && item?.date && isWebUrl(item?.url)).map((item) => ({
+    id: item.id ? String(item.id).slice(0, 160) : `shared-recording-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
     title: String(item.title).slice(0, 160),
     url: String(item.url),
     date: /^\d{4}-\d{2}-\d{2}$/.test(item.date) ? item.date : CURRENT_DATE,
     time: /^\d{2}:\d{2}$/.test(item.time || '') ? item.time : '00:00',
     phase: String(item.phase || '同步课程').slice(0, 80),
     summary: String(item.summary || '通过设备同步导入的培训回放。').slice(0, 500),
+    isCustom: true,
   }));
 }
 
-function mergeSyncedItems(current, incoming, type) {
+function mergeSharedItems(current, incoming, type) {
   const keyOf = type === 'presentation'
     ? (item) => `${item.library || 'intelligent'}|${item.title}|${item.url}`
     : (item) => `${item.date}|${item.title}|${item.url}`;
@@ -150,23 +145,10 @@ function mergeSyncedItems(current, incoming, type) {
     return true;
   }).map((item, index) => ({
     ...item,
-    id: `synced-${type}-${Date.now()}-${index}-${Math.random().toString(36).slice(2, 7)}`,
+    id: item.id || `shared-${type}-${Date.now()}-${index}-${Math.random().toString(36).slice(2, 7)}`,
     isCustom: true,
   }));
   return { items: [...current, ...additions], added: additions.length };
-}
-
-function buildSyncUrl(presentationsToSync, recordingsToSync, section) {
-  if (!presentationsToSync.length && !recordingsToSync.length) return '';
-  const url = new URL(window.location.href);
-  url.searchParams.delete('ui-preview');
-  url.hash = `sync=${encodeSyncPayload({
-    version: 1,
-    section: ['presentations', 'ecosystem', 'recordings'].includes(section) ? section : 'all',
-    presentations: presentationsToSync,
-    recordings: recordingsToSync,
-  })}`;
-  return url.href;
 }
 
 function loadCustomPresentations() {
@@ -280,7 +262,7 @@ function userLabel(user) {
   return user?.display_name || user?.displayName || user?.name || user?.username || 'ZBrain 用户';
 }
 
-function Topbar({ query, setQuery, onMenu, user, onLogout }) {
+function Topbar({ query, setQuery, onMenu, user, onLogout, superAdmin, onPublishingSettings }) {
   return (
     <header className="topbar">
       <button className="icon-button mobile-only" onClick={onMenu} aria-label="打开导航"><Menu /></button>
@@ -295,6 +277,7 @@ function Topbar({ query, setQuery, onMenu, user, onLogout }) {
         <kbd>⌘ K</kbd>
       </div>
       <div className="account-actions">
+        {superAdmin && <button className="admin-settings-button" onClick={onPublishingSettings} title="GitHub 全账号发布设置"><ShieldCheck aria-hidden="true" /><span>超级管理员</span></button>}
         <div className="account-name" title={userLabel(user)}><UserRound aria-hidden="true" /><span>{userLabel(user)}</span></div>
         <button className="logout-button" onClick={onLogout} title="退出登录"><LogOut aria-hidden="true" /><span>退出</span></button>
       </div>
@@ -716,16 +699,19 @@ function AddPresentationDialog({ open, defaultLibrary, groupsByLibrary, onClose,
   );
 }
 
-function SyncDialog({ open, presentationsToSync, recordingsToSync, section, onClose }) {
-  const [status, setStatus] = useState('');
-  const syncUrl = useMemo(
-    () => open ? buildSyncUrl(presentationsToSync, recordingsToSync, section) : '',
-    [open, presentationsToSync, recordingsToSync, section],
-  );
+function PublishingSettingsDialog({ open, onClose, presentationCount, recordingCount, onTokenReady, onPublish, publishing }) {
+  const [token, setToken] = useState(getPublishingToken);
+  const [showToken, setShowToken] = useState(false);
+  const [checking, setChecking] = useState(false);
+  const [error, setError] = useState('');
+  const [verified, setVerified] = useState(Boolean(getPublishingToken()));
 
   React.useEffect(() => {
     if (!open) return undefined;
-    setStatus('');
+    const savedToken = getPublishingToken();
+    setToken(savedToken);
+    setVerified(Boolean(savedToken));
+    setError('');
     const closeOnEscape = (event) => event.key === 'Escape' && onClose();
     window.addEventListener('keydown', closeOnEscape);
     return () => window.removeEventListener('keydown', closeOnEscape);
@@ -733,62 +719,59 @@ function SyncDialog({ open, presentationsToSync, recordingsToSync, section, onCl
 
   if (!open) return null;
 
-  const copyLink = async () => {
+  const verify = async () => {
+    const cleanedToken = token.trim();
+    if (!cleanedToken) {
+      setError('请输入 GitHub Fine-grained Token。');
+      return;
+    }
+    setChecking(true);
+    setError('');
     try {
-      await navigator.clipboard.writeText(syncUrl);
-      setStatus('同步链接已复制，可发送到手机打开。');
-    } catch {
-      setStatus('复制失败，请长按链接并手动复制。');
+      await validatePublishingToken(cleanedToken);
+      savePublishingToken(cleanedToken);
+      setVerified(true);
+      onTokenReady(cleanedToken);
+    } catch (validationError) {
+      clearPublishingToken();
+      setVerified(false);
+      setError(validationError instanceof Error ? validationError.message : 'GitHub 发布令牌验证失败。');
+    } finally {
+      setChecking(false);
     }
   };
 
-  const shareLink = async () => {
-    try {
-      await navigator.share({ title: '智显机器人 AI 训战中心资料同步', url: syncUrl });
-      setStatus('已打开系统分享。');
-    } catch (error) {
-      if (error?.name !== 'AbortError') setStatus('当前浏览器不支持系统分享，请复制同步链接。');
-    }
+  const disconnect = () => {
+    clearPublishingToken();
+    setToken('');
+    setVerified(false);
+    setError('');
   };
 
-  const total = presentationsToSync.length + recordingsToSync.length;
   return (
     <div className="dialog-backdrop" onMouseDown={(event) => event.target === event.currentTarget && onClose()}>
-      <section className="add-dialog sync-dialog" role="dialog" aria-modal="true" aria-labelledby="sync-dialog-title">
+      <section className="add-dialog publishing-dialog" role="dialog" aria-modal="true" aria-labelledby="publishing-dialog-title">
         <div className="add-dialog-head">
-          <div><span>DEVICE CONTENT SYNC</span><h3 id="sync-dialog-title">同步到手机</h3></div>
-          <button className="dialog-close" onClick={onClose} aria-label="关闭同步窗口"><X /></button>
+          <div><span>GITHUB SHARED PUBLISHING</span><h3 id="publishing-dialog-title">全账号发布设置</h3></div>
+          <button className="dialog-close" onClick={onClose} aria-label="关闭发布设置"><X /></button>
         </div>
-        <div className="sync-dialog-body">
-          {syncUrl ? (
-            <>
-              <div className="sync-summary">
-                <Smartphone />
-                <div><strong>共 {total} 项新增内容</strong><span>{presentationsToSync.length} 个方案 · {recordingsToSync.length} 个视频</span></div>
-              </div>
-              <ol className="sync-steps">
-                <li>复制链接并发送到手机。</li>
-                <li>手机登录同一个训战中心后打开链接。</li>
-                <li>页面会自动导入、去重并显示内容。</li>
-              </ol>
-              <label className="sync-link-field">
-                <span>设备同步链接</span>
-                <textarea readOnly value={syncUrl} rows="4" onFocus={(event) => event.target.select()} />
-              </label>
-              {status && <p className="sync-status" role="status">{status}</p>}
-              <div className="dialog-actions sync-actions">
-                {typeof navigator.share === 'function' && <button type="button" className="dialog-cancel" onClick={shareLink}><Share2 /> 系统分享</button>}
-                <button type="button" className="dialog-submit" onClick={copyLink}><Copy /> 复制同步链接</button>
-              </div>
-            </>
-          ) : (
-            <div className="sync-empty">
-              <Smartphone />
-              <h4>暂时没有需要同步的内容</h4>
-              <p>先通过“新增方案”或“添加视频”录入内容，再生成手机同步链接。</p>
-              <button type="button" className="dialog-cancel" onClick={onClose}>返回资源中心</button>
-            </div>
-          )}
+        <div className="publishing-dialog-body">
+          <div className={`publishing-state ${verified ? 'is-ready' : ''}`}>
+            {verified ? <BadgeCheck /> : <ShieldCheck />}
+            <div><strong>{verified ? 'GitHub 发布通道已启用' : '仅超级管理员可启用发布'}</strong><span>{verified ? '新增、编辑和删除会同步给所有平台账号。' : '令牌只保存在当前浏览器会话，关闭浏览器后自动清除。'}</span></div>
+          </div>
+          <label className="publishing-token-field">
+            <span>GitHub Fine-grained Token</span>
+            <div className="auth-input"><KeyRound aria-hidden="true" /><input type={showToken ? 'text' : 'password'} value={token} onChange={(event) => { setToken(event.target.value); setVerified(false); }} placeholder="github_pat_..." autoComplete="off" /><button type="button" onClick={() => setShowToken((current) => !current)} aria-label={showToken ? '隐藏令牌' : '显示令牌'}>{showToken ? <EyeOff /> : <Eye />}</button></div>
+          </label>
+          <p className="publishing-note">令牌仅授权 <b>Rancho-Yin/zbrainlearning</b>，Repository permissions 选择 <b>Contents: Read and write</b>。</p>
+          <a className="publishing-token-link" href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noreferrer">前往 GitHub 创建令牌 <ArrowUpRight /></a>
+          {error && <p className="form-error" role="alert">{error}</p>}
+          <div className="publishing-counts"><span><FileText /> {presentationCount} 个共享方案</span><span><Video /> {recordingCount} 个共享视频</span></div>
+          <div className="dialog-actions publishing-actions">
+            {verified ? <button type="button" className="dialog-cancel" onClick={disconnect}>断开令牌</button> : <button type="button" className="dialog-cancel" onClick={verify} disabled={checking}>{checking ? <RefreshCw className="is-spinning" /> : <ShieldCheck />} 验证并启用</button>}
+            <button type="button" className="dialog-submit" onClick={() => onPublish(token.trim())} disabled={!verified || publishing}>{publishing ? <RefreshCw className="is-spinning" /> : <CloudUpload />} {publishing ? '正在发布...' : '发布当前全部内容'}</button>
+          </div>
         </div>
       </section>
     </div>
@@ -804,14 +787,14 @@ function ReplayTypeTabs({ active, onChange, recordingCount }) {
   );
 }
 
-function VideoReplayLibrary({ items, onAddClick, onRemove }) {
+function VideoReplayLibrary({ items, onAddClick, onRemove, canManage }) {
   return (
     <section className="video-replay-library" aria-label="视频回放列表">
       <div className="presentation-library-head video-library-head">
         <div><p className="section-kicker">TRAINING VIDEO REPLAY</p><h3>视频回放</h3></div>
         <div className="presentation-library-actions">
           <p>录入会议回放链接和培训主题信息，持续沉淀代理商训战内容。</p>
-          <button onClick={onAddClick}><Plus /> 添加视频</button>
+          {canManage && <button onClick={onAddClick}><Plus /> 添加视频</button>}
         </div>
       </div>
       <div className="recording-list">
@@ -837,7 +820,7 @@ function ReplayPresentationLibrary({ items }) {
   );
 }
 
-function SolutionLibrary({ library, items, groups, onAddClick, onRemove }) {
+function SolutionLibrary({ library, items, groups, onAddClick, onRemove, canManage }) {
   const config = LIBRARY_CONFIG[library];
   const indexedItems = items.map((presentation, index) => ({ presentation, index }));
   return (
@@ -846,7 +829,7 @@ function SolutionLibrary({ library, items, groups, onAddClick, onRemove }) {
         <div><p className="section-kicker">{config.kicker}</p><h3>{config.label}</h3></div>
         <div className="presentation-library-actions">
           <p>{config.description}</p>
-          <button onClick={onAddClick}><Plus /> 新增方案</button>
+          {canManage && <button onClick={onAddClick}><Plus /> 新增方案</button>}
         </div>
       </div>
       {items.length ? groups.map((group, groupIndex) => {
@@ -864,12 +847,12 @@ function SolutionLibrary({ library, items, groups, onAddClick, onRemove }) {
             </div>
           </section>
         );
-      }) : <div className="no-results"><Search /><h3>{config.emptyTitle}</h3><p>{config.emptyDescription}</p><button className="empty-add-button" onClick={onAddClick}><Plus /> 新增方案</button></div>}
+      }) : <div className="no-results"><Search /><h3>{config.emptyTitle}</h3><p>{canManage ? config.emptyDescription : '超级管理员发布后，方案会自动同步到这里。'}</p>{canManage && <button className="empty-add-button" onClick={onAddClick}><Plus /> 新增方案</button>}</div>}
     </section>
   );
 }
 
-function Library({ presentationItems, recordingItems, groupsByLibrary, section, query, onSectionChange, onAddPresentationClick, onRemovePresentation, onAddRecordingClick, onRemoveRecording, onSyncClick }) {
+function Library({ presentationItems, recordingItems, groupsByLibrary, section, query, onSectionChange, onAddPresentationClick, onRemovePresentation, onAddRecordingClick, onRemoveRecording, canManage, onPublishingSettings }) {
   const [replayType, setReplayType] = useState('video');
   const normalized = query.trim().toLowerCase();
   const compactQuery = normalized.replace(/[^a-z0-9\u4e00-\u9fff]/g, '');
@@ -907,7 +890,7 @@ function Library({ presentationItems, recordingItems, groupsByLibrary, section, 
       <div className="section-heading">
         <div><p className="section-kicker">LEARNING RESOURCE CENTER</p><h2>{sectionTitle}</h2><p className="heading-desc">回看训战内容，查阅智能方案与生态联合方案，把碎片经验沉淀为可复用的业务方法。</p></div>
         <div className="library-controls">
-          <button className="sync-device-button" onClick={onSyncClick}><Smartphone /> 同步到手机</button>
+          {canManage && <button className="sync-device-button" onClick={onPublishingSettings}><CloudUpload /> 全账号共享</button>}
           <div className="segment-control" aria-label="内容类型筛选">
             {[['all', '全部'], ['recordings', '会议回放'], ['presentations', '智能方案讲解'], ['ecosystem', '生态解决方案']].map(([id, label]) => (
               <button key={id} className={section === id ? 'is-active' : ''} onClick={() => onSectionChange(id)}>{label}</button>
@@ -918,12 +901,12 @@ function Library({ presentationItems, recordingItems, groupsByLibrary, section, 
       {showRecordings && (
         <section className="replay-library" aria-label="会议回放资源">
           {section === 'recordings' && <ReplayTypeTabs active={replayType} onChange={setReplayType} recordingCount={recordingItems.length} />}
-          {showVideoReplay && <VideoReplayLibrary items={filteredRecordings} onAddClick={onAddRecordingClick} onRemove={onRemoveRecording} />}
+          {showVideoReplay && <VideoReplayLibrary items={filteredRecordings} onAddClick={onAddRecordingClick} onRemove={canManage ? onRemoveRecording : null} canManage={canManage} />}
           {showPptReplay && <ReplayPresentationLibrary items={filteredPresentationReplays} />}
         </section>
       )}
-      {showIntelligent && <SolutionLibrary library="intelligent" items={filteredIntelligent} groups={groupsByLibrary.intelligent} onAddClick={() => onAddPresentationClick('intelligent')} onRemove={onRemovePresentation} />}
-      {showEcosystem && <SolutionLibrary library="ecosystem" items={filteredEcosystem} groups={groupsByLibrary.ecosystem} onAddClick={() => onAddPresentationClick('ecosystem')} onRemove={onRemovePresentation} />}
+      {showIntelligent && <SolutionLibrary library="intelligent" items={filteredIntelligent} groups={groupsByLibrary.intelligent} onAddClick={() => onAddPresentationClick('intelligent')} onRemove={canManage ? onRemovePresentation : null} canManage={canManage} />}
+      {showEcosystem && <SolutionLibrary library="ecosystem" items={filteredEcosystem} groups={groupsByLibrary.ecosystem} onAddClick={() => onAddPresentationClick('ecosystem')} onRemove={canManage ? onRemovePresentation : null} canManage={canManage} />}
     </section>
   );
 }
@@ -1063,16 +1046,23 @@ function LoginPage({ onAuthenticated, initialError = '', onRetry }) {
 }
 
 function AppContent({ user, onLogout }) {
-  const [section, setSection] = useState('all');
-  const [activeNav, setActiveNav] = useState('overview');
+  const superAdmin = isSuperAdmin(user);
+  const previewParams = import.meta.env.DEV ? new URLSearchParams(window.location.search) : null;
+  const previewSection = previewParams?.get('ui-section') || '';
+  const initialSection = ['recordings', 'presentations', 'ecosystem'].includes(previewSection) ? previewSection : 'all';
+  const [section, setSection] = useState(initialSection);
+  const [activeNav, setActiveNav] = useState(initialSection === 'all' ? 'overview' : initialSection);
   const [query, setQuery] = useState('');
   const [menuOpen, setMenuOpen] = useState(false);
   const [addDialogLibrary, setAddDialogLibrary] = useState(null);
   const [addRecordingDialogOpen, setAddRecordingDialogOpen] = useState(false);
-  const [syncDialogOpen, setSyncDialogOpen] = useState(false);
+  const [publishingDialogOpen, setPublishingDialogOpen] = useState(superAdmin && previewParams?.get('ui-publishing') === '1');
+  const [publishing, setPublishing] = useState(false);
   const [syncMessage, setSyncMessage] = useState('');
-  const [customPresentations, setCustomPresentations] = useState(loadCustomPresentations);
-  const [customRecordings, setCustomRecordings] = useState(loadCustomRecordings);
+  const [customPresentations, setCustomPresentations] = useState(() => superAdmin ? loadCustomPresentations() : []);
+  const [customRecordings, setCustomRecordings] = useState(() => superAdmin ? loadCustomRecordings() : []);
+  const publishQueueRef = React.useRef(Promise.resolve());
+  const pendingPublishesRef = React.useRef(0);
   const presentationItems = useMemo(() => [...presentations, ...customPresentations]
     .map((item, index) => ({ item, index, time: item.publishedAt ? Date.parse(item.publishedAt) : 0 }))
     .sort((left, right) => right.time - left.time || left.index - right.index)
@@ -1089,37 +1079,43 @@ function AppContent({ user, onLogout }) {
     .map(({ item }) => item), [customRecordings]);
 
   React.useEffect(() => {
-    localStorage.setItem(PRESENTATION_STORAGE_KEY, JSON.stringify(customPresentations));
-  }, [customPresentations]);
+    if (superAdmin) localStorage.setItem(PRESENTATION_STORAGE_KEY, JSON.stringify(customPresentations));
+  }, [customPresentations, superAdmin]);
 
   React.useEffect(() => {
-    localStorage.setItem(RECORDING_STORAGE_KEY, JSON.stringify(customRecordings));
-  }, [customRecordings]);
+    if (superAdmin) localStorage.setItem(RECORDING_STORAGE_KEY, JSON.stringify(customRecordings));
+  }, [customRecordings, superAdmin]);
 
   React.useEffect(() => {
-    if (!window.location.hash.startsWith(SYNC_HASH_PREFIX)) return;
-    try {
-      const payload = decodeSyncPayload(window.location.hash.slice(SYNC_HASH_PREFIX.length));
-      const incomingPresentations = normalizeSyncedPresentations(payload.presentations);
-      const incomingRecordings = normalizeSyncedRecordings(payload.recordings);
-      const mergedPresentations = mergeSyncedItems(customPresentations, incomingPresentations, 'presentation');
-      const mergedRecordings = mergeSyncedItems(customRecordings, incomingRecordings, 'recording');
-      const added = mergedPresentations.added + mergedRecordings.added;
-      setCustomPresentations(mergedPresentations.items);
-      setCustomRecordings(mergedRecordings.items);
-      const nextSection = ['presentations', 'ecosystem', 'recordings'].includes(payload.section) ? payload.section : 'all';
-      setSection(nextSection);
-      setActiveNav(nextSection === 'all' ? 'overview' : nextSection);
-      setSyncMessage(added ? `已同步 ${added} 项内容到当前设备。` : '当前设备已经拥有这些内容，无需重复导入。');
-      window.history.replaceState(null, '', `${window.location.pathname}${window.location.search}#library`);
-      requestAnimationFrame(() => document.querySelector('#library')?.scrollIntoView());
-    } catch {
-      setSyncMessage('同步链接无效或已损坏，请在原设备重新生成。');
-      window.history.replaceState(null, '', `${window.location.pathname}${window.location.search}#library`);
-    }
-  // This is a one-time import of the link present when the authenticated app opens.
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    let cancelled = false;
+    const refreshSharedContent = async () => {
+      try {
+        const shared = await loadSharedContent();
+        if (cancelled) return;
+        const sharedPresentations = normalizeSyncedPresentations(shared.presentations);
+        const sharedRecordings = normalizeSyncedRecordings(shared.recordings);
+        if (superAdmin) {
+          setCustomPresentations((current) => mergeSharedItems(current, sharedPresentations, 'presentation').items);
+          setCustomRecordings((current) => mergeSharedItems(current, sharedRecordings, 'recording').items);
+        } else {
+          setCustomPresentations(sharedPresentations);
+          setCustomRecordings(sharedRecordings);
+        }
+      } catch (error) {
+        if (!cancelled) setSyncMessage(error instanceof Error ? error.message : '暂时无法读取全账号共享内容。');
+      }
+    };
+
+    refreshSharedContent();
+    if (superAdmin) return () => { cancelled = true; };
+    const interval = window.setInterval(refreshSharedContent, 120000);
+    window.addEventListener('focus', refreshSharedContent);
+    return () => {
+      cancelled = true;
+      window.clearInterval(interval);
+      window.removeEventListener('focus', refreshSharedContent);
+    };
+  }, [superAdmin]);
 
   React.useEffect(() => {
     const onKeyDown = (event) => {
@@ -1144,14 +1140,56 @@ function AppContent({ user, onLogout }) {
     setActiveNav(nextSection === 'all' ? 'overview' : nextSection);
   };
 
+  const publishSnapshot = React.useCallback((nextPresentations, nextRecordings, suppliedToken = getPublishingToken()) => {
+    const token = suppliedToken.trim();
+    if (!token) {
+      setPublishingDialogOpen(true);
+      setSyncMessage('内容已保存在本机。请先启用 GitHub 发布通道，再同步到所有账号。');
+      return Promise.resolve(false);
+    }
+
+    pendingPublishesRef.current += 1;
+    setPublishing(true);
+    const task = publishQueueRef.current
+      .catch(() => undefined)
+      .then(() => publishSharedContent({
+        version: 1,
+        updatedAt: new Date().toISOString(),
+        updatedBy: 'yinze1',
+        presentations: normalizeSyncedPresentations(nextPresentations),
+        recordings: normalizeSyncedRecordings(nextRecordings),
+      }, token))
+      .then(() => {
+        setSyncMessage('内容已提交到 GitHub，所有平台账号将在页面发布完成后自动看到更新。');
+        setPublishingDialogOpen(false);
+        return true;
+      })
+      .catch((error) => {
+        const message = error instanceof Error ? error.message : '全账号共享发布失败。';
+        if (message.includes('令牌') || message.includes('权限')) clearPublishingToken();
+        setSyncMessage(message);
+        setPublishingDialogOpen(true);
+        return false;
+      })
+      .finally(() => {
+        pendingPublishesRef.current -= 1;
+        if (pendingPublishesRef.current === 0) setPublishing(false);
+      });
+    publishQueueRef.current = task;
+    return task;
+  }, []);
+
   const addPresentation = (item) => {
     const cover = COVER_ASSETS[Math.floor(Math.random() * COVER_ASSETS.length)];
-    setCustomPresentations((current) => [...current, {
+    const nextItem = {
       ...item,
       id: `custom-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
       cover,
       isCustom: true,
-    }]);
+    };
+    const nextPresentations = [...customPresentations, nextItem];
+    setCustomPresentations(nextPresentations);
+    void publishSnapshot(nextPresentations, customRecordings);
     setQuery('');
     changeSection(LIBRARY_CONFIG[item.library || 'intelligent'].section);
     setAddDialogLibrary(null);
@@ -1159,15 +1197,20 @@ function AppContent({ user, onLogout }) {
   };
 
   const removePresentation = (id) => {
-    setCustomPresentations((current) => current.filter((presentation) => presentation.id !== id));
+    const nextPresentations = customPresentations.filter((presentation) => presentation.id !== id);
+    setCustomPresentations(nextPresentations);
+    void publishSnapshot(nextPresentations, customRecordings);
   };
 
   const addRecording = (item) => {
-    setCustomRecordings((current) => [...current, {
+    const nextItem = {
       ...item,
       id: `custom-recording-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
       isCustom: true,
-    }]);
+    };
+    const nextRecordings = [...customRecordings, nextItem];
+    setCustomRecordings(nextRecordings);
+    void publishSnapshot(customPresentations, nextRecordings);
     setQuery('');
     changeSection('recordings');
     setAddRecordingDialogOpen(false);
@@ -1175,28 +1218,31 @@ function AppContent({ user, onLogout }) {
   };
 
   const removeRecording = (id) => {
-    setCustomRecordings((current) => current.filter((recording) => recording.id !== id));
+    const nextRecordings = customRecordings.filter((recording) => recording.id !== id);
+    setCustomRecordings(nextRecordings);
+    void publishSnapshot(customPresentations, nextRecordings);
   };
 
   return (
     <div className="app-shell">
       <Sidebar solutionCount={intelligentItems.length} ecosystemCount={ecosystemItems.length} replayCount={recordingItems.length + presentationReplays.length} section={section} onSectionChange={changeSection} activeNav={activeNav} onActiveNavChange={setActiveNav} open={menuOpen} onClose={() => setMenuOpen(false)} />
       <main>
-        <Topbar query={query} setQuery={setQuery} onMenu={() => setMenuOpen(true)} user={user} onLogout={onLogout} />
+        <Topbar query={query} setQuery={setQuery} onMenu={() => setMenuOpen(true)} user={user} onLogout={onLogout} superAdmin={superAdmin} onPublishingSettings={() => setPublishingDialogOpen(true)} />
         <Hero onBrowse={browse} onAbout={() => setActiveNav('overview')} />
         <div className="content-wrap"><Stats presentationCount={intelligentItems.length} recordingCount={recordingItems.length} /><About /></div>
         <Enablement />
-        <div className="content-wrap"><Library presentationItems={presentationItems} recordingItems={recordingItems} groupsByLibrary={groupsByLibrary} section={section} query={query} onSectionChange={changeSection} onAddPresentationClick={setAddDialogLibrary} onRemovePresentation={removePresentation} onAddRecordingClick={() => setAddRecordingDialogOpen(true)} onRemoveRecording={removeRecording} onSyncClick={() => setSyncDialogOpen(true)} /><Footer /></div>
+        <div className="content-wrap"><Library presentationItems={presentationItems} recordingItems={recordingItems} groupsByLibrary={groupsByLibrary} section={section} query={query} onSectionChange={changeSection} onAddPresentationClick={setAddDialogLibrary} onRemovePresentation={removePresentation} onAddRecordingClick={() => setAddRecordingDialogOpen(true)} onRemoveRecording={removeRecording} canManage={superAdmin} onPublishingSettings={() => setPublishingDialogOpen(true)} /><Footer /></div>
       </main>
-      <AddPresentationDialog key={addDialogLibrary || 'closed'} open={Boolean(addDialogLibrary)} defaultLibrary={addDialogLibrary || 'intelligent'} groupsByLibrary={groupsByLibrary} onClose={() => setAddDialogLibrary(null)} onAdd={addPresentation} />
-      <AddRecordingDialog open={addRecordingDialogOpen} onClose={() => setAddRecordingDialogOpen(false)} onAdd={addRecording} />
-      <SyncDialog open={syncDialogOpen} presentationsToSync={customPresentations} recordingsToSync={customRecordings} section={section} onClose={() => setSyncDialogOpen(false)} />
+      {superAdmin && <AddPresentationDialog key={addDialogLibrary || 'closed'} open={Boolean(addDialogLibrary)} defaultLibrary={addDialogLibrary || 'intelligent'} groupsByLibrary={groupsByLibrary} onClose={() => setAddDialogLibrary(null)} onAdd={addPresentation} />}
+      {superAdmin && <AddRecordingDialog open={addRecordingDialogOpen} onClose={() => setAddRecordingDialogOpen(false)} onAdd={addRecording} />}
+      {superAdmin && <PublishingSettingsDialog open={publishingDialogOpen} presentationCount={customPresentations.length} recordingCount={customRecordings.length} onClose={() => setPublishingDialogOpen(false)} onTokenReady={(token) => { void publishSnapshot(customPresentations, customRecordings, token); }} onPublish={(token) => { void publishSnapshot(customPresentations, customRecordings, token); }} publishing={publishing} />}
       {syncMessage && <div className="sync-toast" role="status"><BadgeCheck /><span>{syncMessage}</span><button onClick={() => setSyncMessage('')} aria-label="关闭同步提示"><X /></button></div>}
     </div>
   );
 }
 
 function App() {
+  const previewUsername = import.meta.env.DEV ? new URLSearchParams(window.location.search).get('ui-preview') : '';
   const [authState, setAuthState] = useState({ status: 'loading', user: null, error: '' });
 
   const verifySession = React.useCallback(() => {
@@ -1207,14 +1253,16 @@ function App() {
   }, []);
 
   React.useEffect(() => {
+    if (previewUsername) return;
     verifySession();
-  }, [verifySession]);
+  }, [previewUsername, verifySession]);
 
   const signOut = async () => {
     await logout();
     setAuthState({ status: 'anonymous', user: null, error: '' });
   };
 
+  if (previewUsername) return <AppContent user={{ username: previewUsername, display_name: previewUsername }} onLogout={() => undefined} />;
   if (authState.status === 'loading') return <LoadingScreen />;
   if (!authState.user) return <LoginPage initialError={authState.error} onRetry={verifySession} onAuthenticated={(user) => setAuthState({ status: 'authenticated', user, error: '' })} />;
   return <AppContent user={authState.user} onLogout={signOut} />;

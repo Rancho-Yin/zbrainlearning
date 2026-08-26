@@ -101,22 +101,6 @@ export const presentations = [
     cover: 'assets/covers/partner-training.png',
   },
   {
-    id: 'wuhan-hongliang-intelligence-company',
-    title: '武汉宏量智能公司介绍',
-    url: 'https://www.wanpinghui.com/s/pad-msr6czag-pxr8xl?p=p_6052e5fa15236c66',
-    group: 'company',
-    category: '公司介绍',
-    cover: 'assets/covers/partner-training.png',
-  },
-  {
-    id: 'wuhan-hongliang-technology-company',
-    title: '武汉宏量智能科技公司介绍',
-    url: 'https://www.wanpinghui.com/s/pad-msq26m6n-9hc40l?p=p_406628dfc8ebe4e9',
-    group: 'company',
-    category: '公司介绍',
-    cover: 'assets/covers/partner-training.png',
-  },
-  {
     id: 'ai-showroom-solution',
     title: '智显机器人-AI展厅方案',
     url: 'https://livepad.zbrain.cn/s/pad-msrqboxk-zc248e?p=p_b71f5093762c7caa',

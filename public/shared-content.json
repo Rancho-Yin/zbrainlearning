@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-08-31T01:48:09.857Z",
+  "updatedAt": "2026-08-31T01:54:38.651Z",
   "updatedBy": "yinze1",
   "presentations": [
     {
@@ -209,6 +209,19 @@
       "category": "英文",
       "publishedAt": "2026-08-01",
       "cover": "assets/covers/digital-media-education.png",
+      "isCustom": true
+    },
+    {
+      "id": "custom-1788141278646-y2thj",
+      "title": "榆林化学指挥中心展厅智能接待方案",
+      "url": "https://livepad.zbrain.cn/s/pad-mtb0p3z4-b3drgg?p=p_dd67093e2281e3ef",
+      "library": "intelligent",
+      "group": "solution",
+      "groupLabel": "解决方案介绍",
+      "groupDescription": "按展厅、教育、能源与 AIGC 等场景查找可直接讲解的方案。",
+      "category": "自定义方案",
+      "publishedAt": "2026-08-01",
+      "cover": "assets/covers/ai-showroom.png",
       "isCustom": true
     }
   ],

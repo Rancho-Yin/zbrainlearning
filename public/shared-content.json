@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-08-21T22:44:22.545Z",
+  "updatedAt": "2026-08-31T01:47:36.033Z",
   "updatedBy": "yinze1",
   "presentations": [
     {
@@ -155,6 +155,58 @@
       "groupLabel": "武汉宏量",
       "groupDescription": "用户自主添加的方案分类。",
       "category": "公司",
+      "publishedAt": "2026-08-01",
+      "cover": "assets/covers/digital-media-education.png",
+      "isCustom": true
+    },
+    {
+      "id": "custom-1787736229309-fxxtm",
+      "title": "云边端空间智能解决方案",
+      "url": "https://livepad.zbrain.cn/s/pad-mt88ugu3-7266w9?p=p_dd67093e2281e3ef",
+      "library": "intelligent",
+      "group": "solution",
+      "groupLabel": "解决方案介绍",
+      "groupDescription": "按展厅、教育、能源与 AIGC 等场景查找可直接讲解的方案。",
+      "category": "智能解决方案",
+      "publishedAt": "2026-08-01",
+      "cover": "assets/covers/partner-training.png",
+      "isCustom": true
+    },
+    {
+      "id": "custom-1787736309373-f93cn",
+      "title": "LivePad Al方案营销助手",
+      "url": "https://livepad.zbrain.cn/s/pad-mt8bk4h9-26hxv4?p=p_dd67093e2281e3ef",
+      "library": "intelligent",
+      "group": "solution",
+      "groupLabel": "解决方案介绍",
+      "groupDescription": "按展厅、教育、能源与 AIGC 等场景查找可直接讲解的方案。",
+      "category": "自定义方案",
+      "publishedAt": "2026-08-01",
+      "cover": "assets/covers/digital-media-education.png",
+      "isCustom": true
+    },
+    {
+      "id": "custom-1788139663946-hbbh6",
+      "title": "LivePad Al Proposal Marketing Assistant",
+      "url": "https://livepad.zbrain.cn/s/pad-mt8s8o0w-kjgl8f?p=p_dd67093e2281e3ef",
+      "library": "intelligent",
+      "group": "solution",
+      "groupLabel": "解决方案介绍",
+      "groupDescription": "按展厅、教育、能源与 AIGC 等场景查找可直接讲解的方案。",
+      "category": "英文版",
+      "publishedAt": "2026-08-01",
+      "cover": "assets/covers/partner-training.png",
+      "isCustom": true
+    },
+    {
+      "id": "custom-1788139770403-ap2w7",
+      "title": "CLOUD-EDGE-TERMINAL SPATIALINTELLGENCE SOLUTION",
+      "url": "https://livepad.zbrain.cn/s/pad-mt8divz6-xz5h57?p=p_dd67093e2281e3ef",
+      "library": "intelligent",
+      "group": "solution",
+      "groupLabel": "解决方案介绍",
+      "groupDescription": "按展厅、教育、能源与 AIGC 等场景查找可直接讲解的方案。",
+      "category": "英文",
       "publishedAt": "2026-08-01",
       "cover": "assets/covers/digital-media-education.png",
       "isCustom": true

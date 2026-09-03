@@ -22,6 +22,8 @@ function normalizeContent(value) {
     updatedBy: value?.updatedBy || null,
     presentations: Array.isArray(value?.presentations) ? value.presentations : [],
     recordings: Array.isArray(value?.recordings) ? value.recordings : [],
+    ecosystemVideos: Array.isArray(value?.ecosystemVideos) ? value.ecosystemVideos : [],
+    ordering: value?.ordering && typeof value.ordering === 'object' ? value.ordering : {},
   };
 }
 

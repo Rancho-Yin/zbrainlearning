@@ -9,7 +9,9 @@ npm install
 npm run dev
 ```
 
-资源数据集中维护在 `src/data.js`：`recordings` 是视频回放，`presentationReplays` 是培训 PPT 回放，`presentations` 是智能方案讲解。新增智能方案时在 `presentations` 中追加：
+资源数据集中维护在 `src/data.js`：`recordings` 是会议视频回放，`presentationReplays` 是培训 PPT 回放，`presentations` 是智能方案讲解。管理员新增的生态视频和共享内容保存在 `public/shared-content.json`。
+
+新增智能方案时在 `presentations` 中追加：
 
 ```js
 {
@@ -26,7 +28,11 @@ npm run dev
 
 ## 全账号共享发布
 
-`yinze1` 是平台超级管理员。超级管理员新增或删除方案、生态方案和视频回放后，网站会把内容发布到 `public/shared-content.json`；GitHub Pages 完成部署后，其他 ZBrain 账号会自动读取同一份数据。
+`yinze1` 是平台超级管理员。超级管理员新增或删除方案、生态方案、会议视频和生态视频后，网站会把内容发布到 `public/shared-content.json`；GitHub Pages 完成部署后，其他 ZBrain 账号会自动读取同一份数据。
+
+生态视频只保存视频链接和元数据，不上传本地视频文件。MP4、WebM、OGG、M3U8 等直接媒体地址可在站内播放；腾讯会议、云盘等网页地址会打开原始回放页面。生态方案的“生态伙伴 / 生态产品 / 联合解决方案”分类保持不变，生态视频拥有独立分类字段。
+
+超级管理员可通过“内容排序”调整会议视频、会议 PPT、智能方案、生态方案和生态视频的顺序，排序结果也会写入共享数据并同步给所有账号。
 
 首次使用时，以 `yinze1` 登录并打开“超级管理员 / 全账号共享”，配置只授权 `Rancho-Yin/zbrainlearning` 仓库且具备 `Contents: Read and write` 权限的 GitHub Fine-grained Token。令牌仅保存在当前标签页的 `sessionStorage`，不会写入源码或构建产物；关闭浏览器后需要重新配置。
 

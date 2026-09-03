@@ -11,6 +11,7 @@ import {
   Clock3,
   CloudUpload,
   FileText,
+  Film,
   FolderOpen,
   GraduationCap,
   Eye,
@@ -21,14 +22,18 @@ import {
   LockKeyhole,
   LogIn,
   LogOut,
+  ListOrdered,
   Menu,
   MessageSquareText,
+  MoveDown,
+  MoveUp,
   Network,
   Play,
   Plus,
   Presentation,
   RefreshCw,
   Search,
+  Save,
   ShieldCheck,
   Sparkles,
   Target,
@@ -41,6 +46,7 @@ import {
 } from 'lucide-react';
 import { getCurrentUser, login, logout, register } from './auth';
 import { presentationReplays, presentations, recordings } from './data';
+import { applyOrdering, isDirectMediaUrl, normalizeSyncedVideos } from './content-utils';
 import {
   clearPublishingToken,
   getPublishingToken,
@@ -60,6 +66,7 @@ const COVER_ASSETS = [
 ];
 const PRESENTATION_STORAGE_KEY = 'zbrainlearning-custom-presentations-v1';
 const RECORDING_STORAGE_KEY = 'zbrainlearning-custom-recordings-v1';
+const ECOSYSTEM_VIDEO_STORAGE_KEY = 'zbrainlearning-custom-ecosystem-videos-v1';
 const CURRENT_MONTH = new Date().toISOString().slice(0, 7);
 const CURRENT_DATE = new Date().toLocaleDateString('en-CA');
 const CUSTOM_GROUP_VALUE = '__custom_group__';
@@ -136,6 +143,8 @@ function normalizeSyncedRecordings(value) {
 function mergeSharedItems(current, incoming, type) {
   const keyOf = type === 'presentation'
     ? (item) => `${item.library || 'intelligent'}|${item.title}|${item.url}`
+    : type === 'video'
+      ? (item) => `${item.title}|${item.url}`
     : (item) => `${item.date}|${item.title}|${item.url}`;
   const known = new Set(current.map(keyOf));
   const additions = incoming.filter((item) => {
@@ -189,6 +198,15 @@ function loadCustomRecordings() {
     return Array.isArray(value)
       ? value.filter((item) => item?.id && item?.title && item?.url && item?.date)
       : [];
+  } catch {
+    return [];
+  }
+}
+
+function loadCustomEcosystemVideos() {
+  try {
+    const value = JSON.parse(localStorage.getItem(ECOSYSTEM_VIDEO_STORAGE_KEY) || '[]');
+    return Array.isArray(value) ? normalizeSyncedVideos(value) : [];
   } catch {
     return [];
   }
@@ -262,7 +280,7 @@ function userLabel(user) {
   return user?.display_name || user?.displayName || user?.name || user?.username || 'ZBrain 用户';
 }
 
-function Topbar({ query, setQuery, onMenu, user, onLogout, superAdmin, onPublishingSettings }) {
+function Topbar({ query, setQuery, onMenu, user, onLogout, superAdmin, onPublishingSettings, onSortSettings }) {
   return (
     <header className="topbar">
       <button className="icon-button mobile-only" onClick={onMenu} aria-label="打开导航"><Menu /></button>
@@ -277,6 +295,7 @@ function Topbar({ query, setQuery, onMenu, user, onLogout, superAdmin, onPublish
         <kbd>⌘ K</kbd>
       </div>
       <div className="account-actions">
+        {superAdmin && <button className="admin-sort-button" onClick={onSortSettings} title="管理内容排序"><ListOrdered aria-hidden="true" /><span>内容排序</span></button>}
         {superAdmin && <button className="admin-settings-button" onClick={onPublishingSettings} title="GitHub 全账号发布设置"><ShieldCheck aria-hidden="true" /><span>超级管理员</span></button>}
         <div className="account-name" title={userLabel(user)}><UserRound aria-hidden="true" /><span>{userLabel(user)}</span></div>
         <button className="logout-button" onClick={onLogout} title="退出登录"><LogOut aria-hidden="true" /><span>退出</span></button>
@@ -531,6 +550,70 @@ function AddRecordingDialog({ open, onClose, onAdd }) {
   );
 }
 
+function AddEcosystemVideoDialog({ open, onClose, onAdd }) {
+  const [title, setTitle] = useState('');
+  const [url, setUrl] = useState('');
+  const [category, setCategory] = useState('生态介绍');
+  const [summary, setSummary] = useState('');
+  const [cover, setCover] = useState(COVER_ASSETS[2]);
+  const [error, setError] = useState('');
+
+  React.useEffect(() => {
+    if (!open) return undefined;
+    setTitle('');
+    setUrl('');
+    setCategory('生态介绍');
+    setSummary('');
+    setCover(COVER_ASSETS[2]);
+    setError('');
+    const closeOnEscape = (event) => event.key === 'Escape' && onClose();
+    window.addEventListener('keydown', closeOnEscape);
+    return () => window.removeEventListener('keydown', closeOnEscape);
+  }, [onClose, open]);
+
+  if (!open) return null;
+
+  const submit = (event) => {
+    event.preventDefault();
+    const cleanedTitle = title.trim();
+    const cleanedUrl = url.trim().replace(/[，,。；;]+$/, '');
+    const cleanedCategory = category.trim();
+    const cleanedSummary = summary.trim();
+    if (!cleanedTitle || !cleanedUrl || !cleanedCategory) {
+      setError('请填写视频名称、视频链接和视频分类。');
+      return;
+    }
+    try {
+      const parsedUrl = new URL(cleanedUrl);
+      if (!['http:', 'https:'].includes(parsedUrl.protocol)) throw new Error('invalid protocol');
+      onAdd({ title: cleanedTitle, url: parsedUrl.href, category: cleanedCategory, summary: cleanedSummary || '生态解决方案视频介绍。', cover, createdAt: CURRENT_DATE });
+      setTitle('');
+      setUrl('');
+      setSummary('');
+      setError('');
+    } catch {
+      setError('请输入以 http:// 或 https:// 开头的有效视频链接。');
+    }
+  };
+
+  return (
+    <div className="dialog-backdrop" onMouseDown={(event) => event.target === event.currentTarget && onClose()}>
+      <section className="add-dialog add-ecosystem-video-dialog" role="dialog" aria-modal="true" aria-labelledby="add-ecosystem-video-title">
+        <div className="add-dialog-head"><div><span>ADD ECOSYSTEM VIDEO</span><h3 id="add-ecosystem-video-title">新增生态视频</h3></div><button className="dialog-close" onClick={onClose} aria-label="关闭新增生态视频窗口"><X /></button></div>
+        <form onSubmit={submit} noValidate>
+          <label><span>视频名称</span><input autoFocus value={title} onChange={(event) => setTitle(event.target.value)} placeholder="输入视频名称" /></label>
+          <label><span>视频链接</span><div className="url-input"><Link2 /><input value={url} onChange={(event) => setUrl(event.target.value)} placeholder="https://..." inputMode="url" /></div></label>
+          <label><span>视频分类 <small>可自主添加分类</small></span><input value={category} onChange={(event) => setCategory(event.target.value)} placeholder="例如：生态伙伴、产品演示" /></label>
+          <label><span>视频简介 <small>选填</small></span><textarea value={summary} onChange={(event) => setSummary(event.target.value)} placeholder="简要说明视频内容，帮助代理商快速判断是否观看。" rows="3" /></label>
+          <label><span>视频封面</span><select value={cover} onChange={(event) => setCover(event.target.value)}><option value={COVER_ASSETS[0]}>AI 展厅</option><option value={COVER_ASSETS[1]}>数字媒体</option><option value={COVER_ASSETS[2]}>伙伴培训</option></select></label>
+          {error && <p className="form-error" role="alert">{error}</p>}
+          <div className="dialog-actions"><button type="button" className="dialog-cancel" onClick={onClose}>取消</button><button type="submit" className="dialog-submit"><Plus /> 添加到生态视频</button></div>
+        </form>
+      </section>
+    </div>
+  );
+}
+
 function PresentationCard({ presentation, index, onRemove, openLabel = '打开方案' }) {
   const cover = presentation.cover || COVER_ASSETS[index % COVER_ASSETS.length];
   const monthLabel = presentation.publishedAt?.slice(0, 7).replace('-', '.');
@@ -699,7 +782,7 @@ function AddPresentationDialog({ open, defaultLibrary, groupsByLibrary, onClose,
   );
 }
 
-function PublishingSettingsDialog({ open, onClose, presentationCount, recordingCount, onTokenReady, onPublish, publishing }) {
+function PublishingSettingsDialog({ open, onClose, presentationCount, recordingCount, ecosystemVideoCount, onTokenReady, onPublish, publishing }) {
   const [token, setToken] = useState(getPublishingToken);
   const [showToken, setShowToken] = useState(false);
   const [checking, setChecking] = useState(false);
@@ -767,7 +850,7 @@ function PublishingSettingsDialog({ open, onClose, presentationCount, recordingC
           <p className="publishing-note">令牌仅授权 <b>Rancho-Yin/zbrainlearning</b>，Repository permissions 选择 <b>Contents: Read and write</b>。</p>
           <a className="publishing-token-link" href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noreferrer">前往 GitHub 创建令牌 <ArrowUpRight /></a>
           {error && <p className="form-error" role="alert">{error}</p>}
-          <div className="publishing-counts"><span><FileText /> {presentationCount} 个共享方案</span><span><Video /> {recordingCount} 个共享视频</span></div>
+          <div className="publishing-counts"><span><FileText /> {presentationCount} 个共享方案</span><span><Video /> {recordingCount} 个共享视频</span><span><Film /> {ecosystemVideoCount} 个生态视频</span></div>
           <div className="dialog-actions publishing-actions">
             {verified ? <button type="button" className="dialog-cancel" onClick={disconnect}>断开令牌</button> : <button type="button" className="dialog-cancel" onClick={verify} disabled={checking}>{checking ? <RefreshCw className="is-spinning" /> : <ShieldCheck />} 验证并启用</button>}
             <button type="button" className="dialog-submit" onClick={() => onPublish(token.trim())} disabled={!verified || publishing}>{publishing ? <RefreshCw className="is-spinning" /> : <CloudUpload />} {publishing ? '正在发布...' : '发布当前全部内容'}</button>
@@ -778,11 +861,103 @@ function PublishingSettingsDialog({ open, onClose, presentationCount, recordingC
   );
 }
 
-function ReplayTypeTabs({ active, onChange, recordingCount }) {
+function VideoPlayerDialog({ video, onClose }) {
+  React.useEffect(() => {
+    if (!video) return undefined;
+    const closeOnEscape = (event) => event.key === 'Escape' && onClose();
+    window.addEventListener('keydown', closeOnEscape);
+    return () => window.removeEventListener('keydown', closeOnEscape);
+  }, [onClose, video]);
+
+  if (!video) return null;
+  return (
+    <div className="dialog-backdrop" onMouseDown={(event) => event.target === event.currentTarget && onClose()}>
+      <section className="add-dialog video-player-dialog" role="dialog" aria-modal="true" aria-labelledby="video-player-title">
+        <div className="add-dialog-head"><div><span>ECOSYSTEM VIDEO</span><h3 id="video-player-title">{video.title}</h3></div><button className="dialog-close" onClick={onClose} aria-label="关闭视频播放器"><X /></button></div>
+        <div className="video-player-body">
+          {isDirectMediaUrl(video.url) ? <video controls autoPlay playsInline poster={assetUrl(video.cover)} src={video.url}>你的浏览器不支持视频播放。</video> : <div className="external-video-state"><ExternalLinkIcon /><h4>该链接来自外部视频平台</h4><p>当前地址不是可直接嵌入的媒体文件，将在新标签页打开原始回放页面。</p><a className="dialog-submit" href={video.url} target="_blank" rel="noreferrer">打开视频页面 <ArrowUpRight /></a></div>}
+        </div>
+      </section>
+    </div>
+  );
+}
+
+function ExternalLinkIcon(props) {
+  return <ArrowUpRight {...props} />;
+}
+
+function EcosystemVideoCard({ video, index, onRemove, onPlay }) {
+  return (
+    <article className="ecosystem-video-card">
+      <button className="ecosystem-video-cover" onClick={() => onPlay(video)} aria-label={`播放${video.title}`}>
+        <img src={assetUrl(video.cover || COVER_ASSETS[2])} alt="" loading={index < 3 ? 'eager' : 'lazy'} />
+        <span><Film /> {isDirectMediaUrl(video.url) ? '站内播放' : '打开回放'}</span>
+        <i><Play fill="currentColor" /></i>
+      </button>
+      <div className="ecosystem-video-body">
+        <div className="ecosystem-video-meta"><span>{String(index + 1).padStart(2, '0')}</span><b>{video.category || '生态介绍'}</b>{video.isCustom && onRemove && <button className="presentation-remove" onClick={() => onRemove(video.id)} aria-label={`删除${video.title}`} title="删除生态视频"><Trash2 /></button>}</div>
+        <h4>{video.title}</h4>
+        <p>{video.summary}</p>
+      </div>
+    </article>
+  );
+}
+
+function EcosystemVideoLibrary({ items, onAddClick, onRemove, canManage, onPlay }) {
+  const groups = useMemo(() => {
+    const grouped = new Map();
+    items.forEach((item) => {
+      const category = item.category || '生态介绍';
+      if (!grouped.has(category)) grouped.set(category, []);
+      grouped.get(category).push(item);
+    });
+    return [...grouped.entries()];
+  }, [items]);
+
+  return (
+    <section className="presentation-library ecosystem-video-library" aria-label="生态视频介绍列表">
+      <div className="presentation-library-head"><div><p className="section-kicker">ECOSYSTEM VIDEO LIBRARY</p><h3>生态视频介绍</h3></div><div className="presentation-library-actions"><p>按分类沉淀生态伙伴、产品与联合方案视频，帮助代理商快速理解可交付能力。</p>{canManage && <button onClick={onAddClick}><Plus /> 添加视频</button>}</div></div>
+      {groups.length ? groups.map(([category, categoryItems]) => <section className="ecosystem-video-group" key={category}><div className="ecosystem-video-group-head"><span>{String(groups.findIndex(([name]) => name === category) + 1).padStart(2, '0')}</span><h4>{category}</h4><b>{String(categoryItems.length).padStart(2, '0')}</b></div><div className="ecosystem-video-grid">{categoryItems.map((video, index) => <EcosystemVideoCard key={video.id} video={video} index={index} onRemove={onRemove} onPlay={onPlay} />)}</div></section>) : <div className="no-results ecosystem-video-empty"><Film /><h3>生态视频正在持续建设</h3><p>{canManage ? '点击“添加视频”，录入可播放的视频链接与分类。' : '超级管理员发布后，生态视频会自动同步到这里。'}</p>{canManage && <button className="empty-add-button" onClick={onAddClick}><Plus /> 添加视频</button>}</div>}
+    </section>
+  );
+}
+
+function SortDialog({ open, lists, onClose, onSave, saving }) {
+  const [activeList, setActiveList] = useState(lists[0]?.id || 'recordings');
+  const [draft, setDraft] = useState({});
+
+  React.useEffect(() => {
+    if (!open) return;
+    setActiveList(lists[0]?.id || 'recordings');
+    setDraft(Object.fromEntries(lists.map((list) => [list.id, list.items.map((item) => item.id)])));
+  }, [open, lists]);
+
+  if (!open) return null;
+  const current = lists.find((list) => list.id === activeList) || lists[0];
+  const orderedItems = applyOrdering(current?.items || [], draft[current?.id] || []);
+  const move = (index, direction) => {
+    const ids = orderedItems.map((item) => item.id);
+    const target = index + direction;
+    if (target < 0 || target >= ids.length) return;
+    [ids[index], ids[target]] = [ids[target], ids[index]];
+    setDraft((value) => ({ ...value, [current.id]: ids }));
+  };
+
+  return (
+    <div className="dialog-backdrop" onMouseDown={(event) => event.target === event.currentTarget && onClose()}>
+      <section className="add-dialog sort-dialog" role="dialog" aria-modal="true" aria-labelledby="sort-dialog-title">
+        <div className="add-dialog-head"><div><span>CONTENT ORDERING</span><h3 id="sort-dialog-title">内容排序</h3></div><button className="dialog-close" onClick={onClose} aria-label="关闭内容排序窗口"><X /></button></div>
+        <div className="sort-dialog-body"><p className="sort-dialog-intro">拖动排序会同步到所有账号。新内容默认排在列表末尾，你可以随时重新调整。</p><div className="sort-tabs">{lists.map((list) => <button key={list.id} className={activeList === list.id ? 'is-active' : ''} onClick={() => setActiveList(list.id)}>{list.label}<b>{String(list.items.length).padStart(2, '0')}</b></button>)}</div><div className="sort-list">{orderedItems.map((item, index) => <div className="sort-row" key={item.id}><span>{String(index + 1).padStart(2, '0')}</span><div><strong>{item.title}</strong><small>{item.category || item.phase || '内容'}</small></div><div className="sort-row-actions"><button onClick={() => move(index, -1)} disabled={index === 0} aria-label={`上移${item.title}`} title="上移"><MoveUp /></button><button onClick={() => move(index, 1)} disabled={index === orderedItems.length - 1} aria-label={`下移${item.title}`} title="下移"><MoveDown /></button></div></div>)}</div><div className="dialog-actions sort-actions"><button type="button" className="dialog-cancel" onClick={onClose}>取消</button><button type="button" className="dialog-submit" onClick={() => onSave(draft)} disabled={saving}>{saving ? <RefreshCw className="is-spinning" /> : <Save />} {saving ? '正在保存...' : '保存全部排序'}</button></div></div>
+      </section>
+    </div>
+  );
+}
+
+function ReplayTypeTabs({ active, onChange, recordingCount, presentationReplayCount }) {
   return (
     <div className="replay-type-tabs" role="tablist" aria-label="会议回放类型">
       <button role="tab" aria-selected={active === 'video'} className={active === 'video' ? 'is-active' : ''} onClick={() => onChange('video')}><Video /> 视频回放 <b>{String(recordingCount).padStart(2, '0')}</b></button>
-      <button role="tab" aria-selected={active === 'ppt'} className={active === 'ppt' ? 'is-active' : ''} onClick={() => onChange('ppt')}><Presentation /> PPT 回放 <b>{String(presentationReplays.length).padStart(2, '0')}</b></button>
+      <button role="tab" aria-selected={active === 'ppt'} className={active === 'ppt' ? 'is-active' : ''} onClick={() => onChange('ppt')}><Presentation /> PPT 回放 <b>{String(presentationReplayCount).padStart(2, '0')}</b></button>
     </div>
   );
 }
@@ -852,7 +1027,7 @@ function SolutionLibrary({ library, items, groups, onAddClick, onRemove, canMana
   );
 }
 
-function Library({ presentationItems, recordingItems, groupsByLibrary, section, query, onSectionChange, onAddPresentationClick, onRemovePresentation, onAddRecordingClick, onRemoveRecording, canManage, onPublishingSettings }) {
+function Library({ presentationItems, presentationReplayItems, recordingItems, ecosystemVideoItems, groupsByLibrary, section, query, onSectionChange, onAddPresentationClick, onRemovePresentation, onAddRecordingClick, onRemoveRecording, onAddEcosystemVideo, onRemoveEcosystemVideo, onPlayEcosystemVideo, canManage, onPublishingSettings, onSortSettings }) {
   const [replayType, setReplayType] = useState('video');
   const normalized = query.trim().toLowerCase();
   const compactQuery = normalized.replace(/[^a-z0-9\u4e00-\u9fff]/g, '');
@@ -866,10 +1041,14 @@ function Library({ presentationItems, recordingItems, groupsByLibrary, section, 
     const source = `${item.title} ${item.category || ''} ${groupLabel}`.toLowerCase();
     return source.includes(normalized) || source.replace(/[^a-z0-9\u4e00-\u9fff]/g, '').includes(compactQuery);
   }), [compactQuery, groupsByLibrary, normalized, presentationItems]);
-  const filteredPresentationReplays = useMemo(() => presentationReplays.filter((item) => {
+  const filteredEcosystemVideos = useMemo(() => ecosystemVideoItems.filter((item) => {
+    const source = `${item.title} ${item.summary || ''} ${item.category || ''}`.toLowerCase();
+    return source.includes(normalized) || source.replace(/[^a-z0-9\u4e00-\u9fff]/g, '').includes(compactQuery);
+  }), [compactQuery, ecosystemVideoItems, normalized]);
+  const filteredPresentationReplays = useMemo(() => presentationReplayItems.filter((item) => {
     const source = `${item.title} ${item.category || ''} ${item.publishedAt || ''}`.toLowerCase();
     return source.includes(normalized) || source.replace(/[^a-z0-9\u4e00-\u9fff]/g, '').includes(compactQuery);
-  }), [compactQuery, normalized]);
+  }), [compactQuery, normalized, presentationReplayItems]);
   const filteredIntelligent = filteredPresentations.filter((item) => (item.library || 'intelligent') === 'intelligent');
   const filteredEcosystem = filteredPresentations.filter((item) => item.library === 'ecosystem');
   const showRecordings = section === 'all' || section === 'recordings';
@@ -890,6 +1069,7 @@ function Library({ presentationItems, recordingItems, groupsByLibrary, section, 
       <div className="section-heading">
         <div><p className="section-kicker">LEARNING RESOURCE CENTER</p><h2>{sectionTitle}</h2><p className="heading-desc">回看训战内容，查阅智能方案与生态联合方案，把碎片经验沉淀为可复用的业务方法。</p></div>
         <div className="library-controls">
+          {canManage && <button className="admin-sort-library-button" onClick={onSortSettings}><ListOrdered /> 内容排序</button>}
           {canManage && <button className="sync-device-button" onClick={onPublishingSettings}><CloudUpload /> 全账号共享</button>}
           <div className="segment-control" aria-label="内容类型筛选">
             {[['all', '全部'], ['recordings', '会议回放'], ['presentations', '智能方案讲解'], ['ecosystem', '生态解决方案']].map(([id, label]) => (
@@ -900,13 +1080,14 @@ function Library({ presentationItems, recordingItems, groupsByLibrary, section, 
       </div>
       {showRecordings && (
         <section className="replay-library" aria-label="会议回放资源">
-          {section === 'recordings' && <ReplayTypeTabs active={replayType} onChange={setReplayType} recordingCount={recordingItems.length} />}
+          {section === 'recordings' && <ReplayTypeTabs active={replayType} onChange={setReplayType} recordingCount={recordingItems.length} presentationReplayCount={presentationReplayItems.length} />}
           {showVideoReplay && <VideoReplayLibrary items={filteredRecordings} onAddClick={onAddRecordingClick} onRemove={canManage ? onRemoveRecording : null} canManage={canManage} />}
           {showPptReplay && <ReplayPresentationLibrary items={filteredPresentationReplays} />}
         </section>
       )}
       {showIntelligent && <SolutionLibrary library="intelligent" items={filteredIntelligent} groups={groupsByLibrary.intelligent} onAddClick={() => onAddPresentationClick('intelligent')} onRemove={canManage ? onRemovePresentation : null} canManage={canManage} />}
       {showEcosystem && <SolutionLibrary library="ecosystem" items={filteredEcosystem} groups={groupsByLibrary.ecosystem} onAddClick={() => onAddPresentationClick('ecosystem')} onRemove={canManage ? onRemovePresentation : null} canManage={canManage} />}
+      {showEcosystem && <EcosystemVideoLibrary items={filteredEcosystemVideos} onAddClick={onAddEcosystemVideo} onRemove={canManage ? onRemoveEcosystemVideo : null} canManage={canManage} onPlay={onPlayEcosystemVideo} />}
     </section>
   );
 }
@@ -1056,27 +1237,44 @@ function AppContent({ user, onLogout }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [addDialogLibrary, setAddDialogLibrary] = useState(null);
   const [addRecordingDialogOpen, setAddRecordingDialogOpen] = useState(false);
+  const [addEcosystemVideoDialogOpen, setAddEcosystemVideoDialogOpen] = useState(false);
+  const [playingEcosystemVideo, setPlayingEcosystemVideo] = useState(null);
+  const [sortDialogOpen, setSortDialogOpen] = useState(false);
+  const [sortSaving, setSortSaving] = useState(false);
   const [publishingDialogOpen, setPublishingDialogOpen] = useState(superAdmin && previewParams?.get('ui-publishing') === '1');
   const [publishing, setPublishing] = useState(false);
   const [syncMessage, setSyncMessage] = useState('');
   const [customPresentations, setCustomPresentations] = useState(() => superAdmin ? loadCustomPresentations() : []);
   const [customRecordings, setCustomRecordings] = useState(() => superAdmin ? loadCustomRecordings() : []);
+  const [ecosystemVideos, setEcosystemVideos] = useState(() => superAdmin ? loadCustomEcosystemVideos() : []);
+  const [ordering, setOrdering] = useState({});
   const publishQueueRef = React.useRef(Promise.resolve());
   const pendingPublishesRef = React.useRef(0);
-  const presentationItems = useMemo(() => [...presentations, ...customPresentations]
+  const presentationBase = useMemo(() => [...presentations, ...customPresentations]
     .map((item, index) => ({ item, index, time: item.publishedAt ? Date.parse(item.publishedAt) : 0 }))
     .sort((left, right) => right.time - left.time || left.index - right.index)
     .map(({ item }) => item), [customPresentations]);
-  const intelligentItems = useMemo(() => presentationItems.filter((item) => (item.library || 'intelligent') === 'intelligent'), [presentationItems]);
-  const ecosystemItems = useMemo(() => presentationItems.filter((item) => item.library === 'ecosystem'), [presentationItems]);
+  const intelligentItems = useMemo(() => applyOrdering(presentationBase.filter((item) => (item.library || 'intelligent') === 'intelligent'), ordering.intelligentPresentations || ordering.presentations), [ordering.intelligentPresentations, ordering.presentations, presentationBase]);
+  const ecosystemItems = useMemo(() => applyOrdering(presentationBase.filter((item) => item.library === 'ecosystem'), ordering.ecosystemPresentations || ordering.presentations), [ordering.ecosystemPresentations, ordering.presentations, presentationBase]);
+  const presentationItems = useMemo(() => [...intelligentItems, ...ecosystemItems], [ecosystemItems, intelligentItems]);
   const groupsByLibrary = useMemo(() => ({
     intelligent: getLibraryGroups(presentationItems, 'intelligent'),
     ecosystem: getLibraryGroups(presentationItems, 'ecosystem'),
   }), [presentationItems]);
-  const recordingItems = useMemo(() => [...recordings, ...customRecordings]
+  const recordingBase = useMemo(() => [...recordings, ...customRecordings]
     .map((item, index) => ({ item, index, time: Date.parse(`${item.date}T${item.time || '00:00'}:00`) || 0 }))
     .sort((left, right) => right.time - left.time || left.index - right.index)
     .map(({ item }) => item), [customRecordings]);
+  const recordingItems = useMemo(() => applyOrdering(recordingBase, ordering.recordings), [ordering.recordings, recordingBase]);
+  const ecosystemVideoItems = useMemo(() => applyOrdering([...ecosystemVideos].sort((left, right) => String(right.createdAt).localeCompare(String(left.createdAt))), ordering.ecosystemVideos), [ecosystemVideos, ordering.ecosystemVideos]);
+  const orderedPresentationReplays = useMemo(() => applyOrdering(presentationReplays, ordering.presentationReplays), [ordering.presentationReplays]);
+  const sortLists = useMemo(() => [
+    { id: 'recordings', label: '会议视频', items: recordingItems },
+    { id: 'presentationReplays', label: '会议 PPT', items: orderedPresentationReplays },
+    { id: 'intelligentPresentations', label: '智能方案', items: intelligentItems },
+    { id: 'ecosystemPresentations', label: '生态方案', items: ecosystemItems },
+    { id: 'ecosystemVideos', label: '生态视频', items: ecosystemVideoItems },
+  ], [ecosystemItems, ecosystemVideoItems, intelligentItems, orderedPresentationReplays, recordingItems]);
 
   React.useEffect(() => {
     if (superAdmin) localStorage.setItem(PRESENTATION_STORAGE_KEY, JSON.stringify(customPresentations));
@@ -1087,6 +1285,10 @@ function AppContent({ user, onLogout }) {
   }, [customRecordings, superAdmin]);
 
   React.useEffect(() => {
+    if (superAdmin) localStorage.setItem(ECOSYSTEM_VIDEO_STORAGE_KEY, JSON.stringify(ecosystemVideos));
+  }, [ecosystemVideos, superAdmin]);
+
+  React.useEffect(() => {
     let cancelled = false;
     const refreshSharedContent = async () => {
       try {
@@ -1094,12 +1296,16 @@ function AppContent({ user, onLogout }) {
         if (cancelled) return;
         const sharedPresentations = normalizeSyncedPresentations(shared.presentations);
         const sharedRecordings = normalizeSyncedRecordings(shared.recordings);
+        const sharedVideos = normalizeSyncedVideos(shared.ecosystemVideos);
+        setOrdering(shared.ordering || {});
         if (superAdmin) {
           setCustomPresentations((current) => mergeSharedItems(current, sharedPresentations, 'presentation').items);
           setCustomRecordings((current) => mergeSharedItems(current, sharedRecordings, 'recording').items);
+          setEcosystemVideos((current) => mergeSharedItems(current, sharedVideos, 'video').items);
         } else {
           setCustomPresentations(sharedPresentations);
           setCustomRecordings(sharedRecordings);
+          setEcosystemVideos(sharedVideos);
         }
       } catch (error) {
         if (!cancelled) setSyncMessage(error instanceof Error ? error.message : '暂时无法读取全账号共享内容。');
@@ -1140,7 +1346,7 @@ function AppContent({ user, onLogout }) {
     setActiveNav(nextSection === 'all' ? 'overview' : nextSection);
   };
 
-  const publishSnapshot = React.useCallback((nextPresentations, nextRecordings, suppliedToken = getPublishingToken()) => {
+  const publishSnapshot = React.useCallback((nextPresentations, nextRecordings, nextVideos, nextOrdering, suppliedToken = getPublishingToken()) => {
     const token = suppliedToken.trim();
     if (!token) {
       setPublishingDialogOpen(true);
@@ -1158,6 +1364,8 @@ function AppContent({ user, onLogout }) {
         updatedBy: 'yinze1',
         presentations: normalizeSyncedPresentations(nextPresentations),
         recordings: normalizeSyncedRecordings(nextRecordings),
+        ecosystemVideos: normalizeSyncedVideos(nextVideos),
+        ordering: nextOrdering || {},
       }, token))
       .then(() => {
         setSyncMessage('内容已提交到 GitHub，所有平台账号将在页面发布完成后自动看到更新。');
@@ -1188,8 +1396,11 @@ function AppContent({ user, onLogout }) {
       isCustom: true,
     };
     const nextPresentations = [...customPresentations, nextItem];
+    const orderKey = item.library === 'ecosystem' ? 'ecosystemPresentations' : 'intelligentPresentations';
+    const nextOrdering = { ...ordering, [orderKey]: [nextItem.id, ...(ordering[orderKey] || [])] };
     setCustomPresentations(nextPresentations);
-    void publishSnapshot(nextPresentations, customRecordings);
+    setOrdering(nextOrdering);
+    void publishSnapshot(nextPresentations, customRecordings, ecosystemVideos, nextOrdering);
     setQuery('');
     changeSection(LIBRARY_CONFIG[item.library || 'intelligent'].section);
     setAddDialogLibrary(null);
@@ -1198,8 +1409,11 @@ function AppContent({ user, onLogout }) {
 
   const removePresentation = (id) => {
     const nextPresentations = customPresentations.filter((presentation) => presentation.id !== id);
+    const orderKey = customPresentations.find((item) => item.id === id)?.library === 'ecosystem' ? 'ecosystemPresentations' : 'intelligentPresentations';
+    const nextOrdering = { ...ordering, [orderKey]: (ordering[orderKey] || []).filter((itemId) => itemId !== id) };
     setCustomPresentations(nextPresentations);
-    void publishSnapshot(nextPresentations, customRecordings);
+    setOrdering(nextOrdering);
+    void publishSnapshot(nextPresentations, customRecordings, ecosystemVideos, nextOrdering);
   };
 
   const addRecording = (item) => {
@@ -1209,8 +1423,10 @@ function AppContent({ user, onLogout }) {
       isCustom: true,
     };
     const nextRecordings = [...customRecordings, nextItem];
+    const nextOrdering = { ...ordering, recordings: [nextItem.id, ...(ordering.recordings || [])] };
     setCustomRecordings(nextRecordings);
-    void publishSnapshot(customPresentations, nextRecordings);
+    setOrdering(nextOrdering);
+    void publishSnapshot(customPresentations, nextRecordings, ecosystemVideos, nextOrdering);
     setQuery('');
     changeSection('recordings');
     setAddRecordingDialogOpen(false);
@@ -1219,23 +1435,58 @@ function AppContent({ user, onLogout }) {
 
   const removeRecording = (id) => {
     const nextRecordings = customRecordings.filter((recording) => recording.id !== id);
+    const nextOrdering = { ...ordering, recordings: (ordering.recordings || []).filter((itemId) => itemId !== id) };
     setCustomRecordings(nextRecordings);
-    void publishSnapshot(customPresentations, nextRecordings);
+    setOrdering(nextOrdering);
+    void publishSnapshot(customPresentations, nextRecordings, ecosystemVideos, nextOrdering);
+  };
+
+  const addEcosystemVideo = (item) => {
+    const nextVideo = { ...item, id: `ecosystem-video-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`, isCustom: true };
+    const nextVideos = [...ecosystemVideos, nextVideo];
+    const nextOrdering = { ...ordering, ecosystemVideos: [nextVideo.id, ...(ordering.ecosystemVideos || [])] };
+    setEcosystemVideos(nextVideos);
+    setOrdering(nextOrdering);
+    void publishSnapshot(customPresentations, customRecordings, nextVideos, nextOrdering);
+    setQuery('');
+    changeSection('ecosystem');
+    setAddEcosystemVideoDialogOpen(false);
+    requestAnimationFrame(() => document.querySelector('.ecosystem-video-library')?.scrollIntoView({ behavior: 'smooth' }));
+  };
+
+  const removeEcosystemVideo = (id) => {
+    const nextVideos = ecosystemVideos.filter((video) => video.id !== id);
+    const nextOrdering = { ...ordering, ecosystemVideos: (ordering.ecosystemVideos || []).filter((itemId) => itemId !== id) };
+    setEcosystemVideos(nextVideos);
+    setOrdering(nextOrdering);
+    void publishSnapshot(customPresentations, customRecordings, nextVideos, nextOrdering);
+  };
+
+  const saveOrdering = (nextOrdering) => {
+    setOrdering(nextOrdering);
+    setSortSaving(true);
+    void publishSnapshot(customPresentations, customRecordings, ecosystemVideos, nextOrdering).finally(() => {
+      setSortSaving(false);
+      setSortDialogOpen(false);
+    });
   };
 
   return (
     <div className="app-shell">
-      <Sidebar solutionCount={intelligentItems.length} ecosystemCount={ecosystemItems.length} replayCount={recordingItems.length + presentationReplays.length} section={section} onSectionChange={changeSection} activeNav={activeNav} onActiveNavChange={setActiveNav} open={menuOpen} onClose={() => setMenuOpen(false)} />
+      <Sidebar solutionCount={intelligentItems.length} ecosystemCount={ecosystemItems.length + ecosystemVideoItems.length} replayCount={recordingItems.length + presentationReplays.length} section={section} onSectionChange={changeSection} activeNav={activeNav} onActiveNavChange={setActiveNav} open={menuOpen} onClose={() => setMenuOpen(false)} />
       <main>
-        <Topbar query={query} setQuery={setQuery} onMenu={() => setMenuOpen(true)} user={user} onLogout={onLogout} superAdmin={superAdmin} onPublishingSettings={() => setPublishingDialogOpen(true)} />
+        <Topbar query={query} setQuery={setQuery} onMenu={() => setMenuOpen(true)} user={user} onLogout={onLogout} superAdmin={superAdmin} onPublishingSettings={() => setPublishingDialogOpen(true)} onSortSettings={() => setSortDialogOpen(true)} />
         <Hero onBrowse={browse} onAbout={() => setActiveNav('overview')} />
         <div className="content-wrap"><Stats presentationCount={intelligentItems.length} recordingCount={recordingItems.length} /><About /></div>
         <Enablement />
-        <div className="content-wrap"><Library presentationItems={presentationItems} recordingItems={recordingItems} groupsByLibrary={groupsByLibrary} section={section} query={query} onSectionChange={changeSection} onAddPresentationClick={setAddDialogLibrary} onRemovePresentation={removePresentation} onAddRecordingClick={() => setAddRecordingDialogOpen(true)} onRemoveRecording={removeRecording} canManage={superAdmin} onPublishingSettings={() => setPublishingDialogOpen(true)} /><Footer /></div>
+        <div className="content-wrap"><Library presentationItems={presentationItems} presentationReplayItems={orderedPresentationReplays} recordingItems={recordingItems} ecosystemVideoItems={ecosystemVideoItems} groupsByLibrary={groupsByLibrary} section={section} query={query} onSectionChange={changeSection} onAddPresentationClick={setAddDialogLibrary} onRemovePresentation={removePresentation} onAddRecordingClick={() => setAddRecordingDialogOpen(true)} onRemoveRecording={removeRecording} onAddEcosystemVideo={() => setAddEcosystemVideoDialogOpen(true)} onRemoveEcosystemVideo={removeEcosystemVideo} onPlayEcosystemVideo={setPlayingEcosystemVideo} canManage={superAdmin} onPublishingSettings={() => setPublishingDialogOpen(true)} onSortSettings={() => setSortDialogOpen(true)} /><Footer /></div>
       </main>
       {superAdmin && <AddPresentationDialog key={addDialogLibrary || 'closed'} open={Boolean(addDialogLibrary)} defaultLibrary={addDialogLibrary || 'intelligent'} groupsByLibrary={groupsByLibrary} onClose={() => setAddDialogLibrary(null)} onAdd={addPresentation} />}
       {superAdmin && <AddRecordingDialog open={addRecordingDialogOpen} onClose={() => setAddRecordingDialogOpen(false)} onAdd={addRecording} />}
-      {superAdmin && <PublishingSettingsDialog open={publishingDialogOpen} presentationCount={customPresentations.length} recordingCount={customRecordings.length} onClose={() => setPublishingDialogOpen(false)} onTokenReady={(token) => { void publishSnapshot(customPresentations, customRecordings, token); }} onPublish={(token) => { void publishSnapshot(customPresentations, customRecordings, token); }} publishing={publishing} />}
+      {superAdmin && <AddEcosystemVideoDialog open={addEcosystemVideoDialogOpen} onClose={() => setAddEcosystemVideoDialogOpen(false)} onAdd={addEcosystemVideo} />}
+      <VideoPlayerDialog video={playingEcosystemVideo} onClose={() => setPlayingEcosystemVideo(null)} />
+      {superAdmin && <PublishingSettingsDialog open={publishingDialogOpen} presentationCount={customPresentations.length} recordingCount={customRecordings.length} ecosystemVideoCount={ecosystemVideos.length} onClose={() => setPublishingDialogOpen(false)} onTokenReady={(token) => { void publishSnapshot(customPresentations, customRecordings, ecosystemVideos, ordering, token); }} onPublish={(token) => { void publishSnapshot(customPresentations, customRecordings, ecosystemVideos, ordering, token); }} publishing={publishing} />}
+      {superAdmin && <SortDialog open={sortDialogOpen} lists={sortLists} onClose={() => setSortDialogOpen(false)} onSave={saveOrdering} saving={sortSaving} />}
       {syncMessage && <div className="sync-toast" role="status"><BadgeCheck /><span>{syncMessage}</span><button onClick={() => setSyncMessage('')} aria-label="关闭同步提示"><X /></button></div>}
     </div>
   );

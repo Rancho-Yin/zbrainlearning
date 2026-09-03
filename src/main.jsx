@@ -228,16 +228,17 @@ function Brand() {
   );
 }
 
-function Sidebar({ solutionCount, ecosystemCount, replayCount, section, onSectionChange, activeNav, onActiveNavChange, open, onClose }) {
+function Sidebar({ solutionCount, ecosystemCount, productVideoCount, replayCount, section, onSectionChange, activeNav, onActiveNavChange, open, onClose }) {
   const items = [
     { id: 'overview', label: '首页', icon: FolderOpen, href: '#top' },
     { id: 'presentations', label: '智能方案讲解', icon: FileText, href: '#library', count: solutionCount },
     { id: 'ecosystem', label: '生态解决方案', icon: Network, href: '#library', count: ecosystemCount },
+    { id: 'product-videos', label: '产品视频介绍', icon: Film, href: '#library', count: productVideoCount },
     { id: 'recordings', label: '会议回放', icon: Video, href: '#library', count: replayCount },
   ];
 
   const navigate = (item) => {
-    if (item.id === 'recordings' || item.id === 'presentations' || item.id === 'ecosystem') onSectionChange(item.id);
+    if (item.id === 'recordings' || item.id === 'presentations' || item.id === 'ecosystem' || item.id === 'product-videos') onSectionChange(item.id);
     if (item.id === 'overview') onSectionChange('all');
     onActiveNavChange(item.id);
     document.querySelector(item.href)?.scrollIntoView({ behavior: 'smooth' });
@@ -553,7 +554,7 @@ function AddRecordingDialog({ open, onClose, onAdd }) {
 function AddEcosystemVideoDialog({ open, onClose, onAdd }) {
   const [title, setTitle] = useState('');
   const [url, setUrl] = useState('');
-  const [category, setCategory] = useState('生态介绍');
+  const [category, setCategory] = useState('产品介绍');
   const [summary, setSummary] = useState('');
   const [cover, setCover] = useState(COVER_ASSETS[2]);
   const [error, setError] = useState('');
@@ -562,7 +563,7 @@ function AddEcosystemVideoDialog({ open, onClose, onAdd }) {
     if (!open) return undefined;
     setTitle('');
     setUrl('');
-    setCategory('生态介绍');
+    setCategory('产品介绍');
     setSummary('');
     setCover(COVER_ASSETS[2]);
     setError('');
@@ -586,7 +587,7 @@ function AddEcosystemVideoDialog({ open, onClose, onAdd }) {
     try {
       const parsedUrl = new URL(cleanedUrl);
       if (!['http:', 'https:'].includes(parsedUrl.protocol)) throw new Error('invalid protocol');
-      onAdd({ title: cleanedTitle, url: parsedUrl.href, category: cleanedCategory, summary: cleanedSummary || '生态解决方案视频介绍。', cover, createdAt: CURRENT_DATE });
+      onAdd({ title: cleanedTitle, url: parsedUrl.href, category: cleanedCategory, summary: cleanedSummary || '产品视频介绍。', cover, createdAt: CURRENT_DATE });
       setTitle('');
       setUrl('');
       setSummary('');
@@ -599,7 +600,7 @@ function AddEcosystemVideoDialog({ open, onClose, onAdd }) {
   return (
     <div className="dialog-backdrop" onMouseDown={(event) => event.target === event.currentTarget && onClose()}>
       <section className="add-dialog add-ecosystem-video-dialog" role="dialog" aria-modal="true" aria-labelledby="add-ecosystem-video-title">
-        <div className="add-dialog-head"><div><span>ADD ECOSYSTEM VIDEO</span><h3 id="add-ecosystem-video-title">新增生态视频</h3></div><button className="dialog-close" onClick={onClose} aria-label="关闭新增生态视频窗口"><X /></button></div>
+        <div className="add-dialog-head"><div><span>ADD PRODUCT VIDEO</span><h3 id="add-ecosystem-video-title">新增产品视频</h3></div><button className="dialog-close" onClick={onClose} aria-label="关闭新增产品视频窗口"><X /></button></div>
         <form onSubmit={submit} noValidate>
           <label><span>视频名称</span><input autoFocus value={title} onChange={(event) => setTitle(event.target.value)} placeholder="输入视频名称" /></label>
           <label><span>视频链接</span><div className="url-input"><Link2 /><input value={url} onChange={(event) => setUrl(event.target.value)} placeholder="https://..." inputMode="url" /></div></label>
@@ -607,7 +608,7 @@ function AddEcosystemVideoDialog({ open, onClose, onAdd }) {
           <label><span>视频简介 <small>选填</small></span><textarea value={summary} onChange={(event) => setSummary(event.target.value)} placeholder="简要说明视频内容，帮助代理商快速判断是否观看。" rows="3" /></label>
           <label><span>视频封面</span><select value={cover} onChange={(event) => setCover(event.target.value)}><option value={COVER_ASSETS[0]}>AI 展厅</option><option value={COVER_ASSETS[1]}>数字媒体</option><option value={COVER_ASSETS[2]}>伙伴培训</option></select></label>
           {error && <p className="form-error" role="alert">{error}</p>}
-          <div className="dialog-actions"><button type="button" className="dialog-cancel" onClick={onClose}>取消</button><button type="submit" className="dialog-submit"><Plus /> 添加到生态视频</button></div>
+          <div className="dialog-actions"><button type="button" className="dialog-cancel" onClick={onClose}>取消</button><button type="submit" className="dialog-submit"><Plus /> 添加到产品视频</button></div>
         </form>
       </section>
     </div>
@@ -850,7 +851,7 @@ function PublishingSettingsDialog({ open, onClose, presentationCount, recordingC
           <p className="publishing-note">令牌仅授权 <b>Rancho-Yin/zbrainlearning</b>，Repository permissions 选择 <b>Contents: Read and write</b>。</p>
           <a className="publishing-token-link" href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noreferrer">前往 GitHub 创建令牌 <ArrowUpRight /></a>
           {error && <p className="form-error" role="alert">{error}</p>}
-          <div className="publishing-counts"><span><FileText /> {presentationCount} 个共享方案</span><span><Video /> {recordingCount} 个共享视频</span><span><Film /> {ecosystemVideoCount} 个生态视频</span></div>
+          <div className="publishing-counts"><span><FileText /> {presentationCount} 个共享方案</span><span><Video /> {recordingCount} 个共享视频</span><span><Film /> {ecosystemVideoCount} 个产品视频</span></div>
           <div className="dialog-actions publishing-actions">
             {verified ? <button type="button" className="dialog-cancel" onClick={disconnect}>断开令牌</button> : <button type="button" className="dialog-cancel" onClick={verify} disabled={checking}>{checking ? <RefreshCw className="is-spinning" /> : <ShieldCheck />} 验证并启用</button>}
             <button type="button" className="dialog-submit" onClick={() => onPublish(token.trim())} disabled={!verified || publishing}>{publishing ? <RefreshCw className="is-spinning" /> : <CloudUpload />} {publishing ? '正在发布...' : '发布当前全部内容'}</button>
@@ -873,7 +874,7 @@ function VideoPlayerDialog({ video, onClose }) {
   return (
     <div className="dialog-backdrop" onMouseDown={(event) => event.target === event.currentTarget && onClose()}>
       <section className="add-dialog video-player-dialog" role="dialog" aria-modal="true" aria-labelledby="video-player-title">
-        <div className="add-dialog-head"><div><span>ECOSYSTEM VIDEO</span><h3 id="video-player-title">{video.title}</h3></div><button className="dialog-close" onClick={onClose} aria-label="关闭视频播放器"><X /></button></div>
+        <div className="add-dialog-head"><div><span>PRODUCT VIDEO</span><h3 id="video-player-title">{video.title}</h3></div><button className="dialog-close" onClick={onClose} aria-label="关闭视频播放器"><X /></button></div>
         <div className="video-player-body">
           {isDirectMediaUrl(video.url) ? <video controls autoPlay playsInline poster={assetUrl(video.cover)} src={video.url}>你的浏览器不支持视频播放。</video> : <div className="external-video-state"><ExternalLinkIcon /><h4>该链接来自外部视频平台</h4><p>当前地址不是可直接嵌入的媒体文件，将在新标签页打开原始回放页面。</p><a className="dialog-submit" href={video.url} target="_blank" rel="noreferrer">打开视频页面 <ArrowUpRight /></a></div>}
         </div>
@@ -895,7 +896,7 @@ function EcosystemVideoCard({ video, index, onRemove, onPlay }) {
         <i><Play fill="currentColor" /></i>
       </button>
       <div className="ecosystem-video-body">
-        <div className="ecosystem-video-meta"><span>{String(index + 1).padStart(2, '0')}</span><b>{video.category || '生态介绍'}</b>{video.isCustom && onRemove && <button className="presentation-remove" onClick={() => onRemove(video.id)} aria-label={`删除${video.title}`} title="删除生态视频"><Trash2 /></button>}</div>
+        <div className="ecosystem-video-meta"><span>{String(index + 1).padStart(2, '0')}</span><b>{video.category || '产品介绍'}</b>{video.isCustom && onRemove && <button className="presentation-remove" onClick={() => onRemove(video.id)} aria-label={`删除${video.title}`} title="删除产品视频"><Trash2 /></button>}</div>
         <h4>{video.title}</h4>
         <p>{video.summary}</p>
       </div>
@@ -907,7 +908,7 @@ function EcosystemVideoLibrary({ items, onAddClick, onRemove, canManage, onPlay 
   const groups = useMemo(() => {
     const grouped = new Map();
     items.forEach((item) => {
-      const category = item.category || '生态介绍';
+      const category = item.category || '产品介绍';
       if (!grouped.has(category)) grouped.set(category, []);
       grouped.get(category).push(item);
     });
@@ -915,9 +916,9 @@ function EcosystemVideoLibrary({ items, onAddClick, onRemove, canManage, onPlay 
   }, [items]);
 
   return (
-    <section className="presentation-library ecosystem-video-library" aria-label="生态视频介绍列表">
-      <div className="presentation-library-head"><div><p className="section-kicker">ECOSYSTEM VIDEO LIBRARY</p><h3>生态视频介绍</h3></div><div className="presentation-library-actions"><p>按分类沉淀生态伙伴、产品与联合方案视频，帮助代理商快速理解可交付能力。</p>{canManage && <button onClick={onAddClick}><Plus /> 添加视频</button>}</div></div>
-      {groups.length ? groups.map(([category, categoryItems]) => <section className="ecosystem-video-group" key={category}><div className="ecosystem-video-group-head"><span>{String(groups.findIndex(([name]) => name === category) + 1).padStart(2, '0')}</span><h4>{category}</h4><b>{String(categoryItems.length).padStart(2, '0')}</b></div><div className="ecosystem-video-grid">{categoryItems.map((video, index) => <EcosystemVideoCard key={video.id} video={video} index={index} onRemove={onRemove} onPlay={onPlay} />)}</div></section>) : <div className="no-results ecosystem-video-empty"><Film /><h3>生态视频正在持续建设</h3><p>{canManage ? '点击“添加视频”，录入可播放的视频链接与分类。' : '超级管理员发布后，生态视频会自动同步到这里。'}</p>{canManage && <button className="empty-add-button" onClick={onAddClick}><Plus /> 添加视频</button>}</div>}
+    <section className="presentation-library product-video-library" aria-label="产品视频介绍列表">
+      <div className="presentation-library-head"><div><p className="section-kicker">PRODUCT VIDEO LIBRARY</p><h3>产品视频介绍</h3></div><div className="presentation-library-actions"><p>按分类沉淀产品、能力与解决方案视频，帮助代理商快速理解可交付能力。</p>{canManage && <button onClick={onAddClick}><Plus /> 添加视频</button>}</div></div>
+      {groups.length ? groups.map(([category, categoryItems]) => <section className="ecosystem-video-group" key={category}><div className="ecosystem-video-group-head"><span>{String(groups.findIndex(([name]) => name === category) + 1).padStart(2, '0')}</span><h4>{category}</h4><b>{String(categoryItems.length).padStart(2, '0')}</b></div><div className="ecosystem-video-grid">{categoryItems.map((video, index) => <EcosystemVideoCard key={video.id} video={video} index={index} onRemove={onRemove} onPlay={onPlay} />)}</div></section>) : <div className="no-results ecosystem-video-empty"><Film /><h3>产品视频正在持续建设</h3><p>{canManage ? '点击“添加视频”，录入可播放的视频链接与分类。' : '超级管理员发布后，产品视频会自动同步到这里。'}</p>{canManage && <button className="empty-add-button" onClick={onAddClick}><Plus /> 添加视频</button>}</div>}
     </section>
   );
 }
@@ -1054,12 +1055,15 @@ function Library({ presentationItems, presentationReplayItems, recordingItems, e
   const showRecordings = section === 'all' || section === 'recordings';
   const showIntelligent = section === 'all' || section === 'presentations';
   const showEcosystem = section === 'all' || section === 'ecosystem';
+  const showProductVideos = section === 'all' || section === 'product-videos';
   const showVideoReplay = section === 'all' || replayType === 'video';
   const showPptReplay = section === 'all' || replayType === 'ppt';
   const sectionTitle = section === 'presentations'
     ? LIBRARY_CONFIG.intelligent.label
     : section === 'ecosystem'
       ? LIBRARY_CONFIG.ecosystem.label
+      : section === 'product-videos'
+        ? '产品视频介绍'
       : section === 'recordings'
         ? '代理商训战回放'
         : '最新学习资源';
@@ -1072,7 +1076,7 @@ function Library({ presentationItems, presentationReplayItems, recordingItems, e
           {canManage && <button className="admin-sort-library-button" onClick={onSortSettings}><ListOrdered /> 内容排序</button>}
           {canManage && <button className="sync-device-button" onClick={onPublishingSettings}><CloudUpload /> 全账号共享</button>}
           <div className="segment-control" aria-label="内容类型筛选">
-            {[['all', '全部'], ['recordings', '会议回放'], ['presentations', '智能方案讲解'], ['ecosystem', '生态解决方案']].map(([id, label]) => (
+            {[['all', '全部'], ['recordings', '会议回放'], ['presentations', '智能方案讲解'], ['ecosystem', '生态解决方案'], ['product-videos', '产品视频介绍']].map(([id, label]) => (
               <button key={id} className={section === id ? 'is-active' : ''} onClick={() => onSectionChange(id)}>{label}</button>
             ))}
           </div>
@@ -1087,7 +1091,7 @@ function Library({ presentationItems, presentationReplayItems, recordingItems, e
       )}
       {showIntelligent && <SolutionLibrary library="intelligent" items={filteredIntelligent} groups={groupsByLibrary.intelligent} onAddClick={() => onAddPresentationClick('intelligent')} onRemove={canManage ? onRemovePresentation : null} canManage={canManage} />}
       {showEcosystem && <SolutionLibrary library="ecosystem" items={filteredEcosystem} groups={groupsByLibrary.ecosystem} onAddClick={() => onAddPresentationClick('ecosystem')} onRemove={canManage ? onRemovePresentation : null} canManage={canManage} />}
-      {showEcosystem && <EcosystemVideoLibrary items={filteredEcosystemVideos} onAddClick={onAddEcosystemVideo} onRemove={canManage ? onRemoveEcosystemVideo : null} canManage={canManage} onPlay={onPlayEcosystemVideo} />}
+      {showProductVideos && <EcosystemVideoLibrary items={filteredEcosystemVideos} onAddClick={onAddEcosystemVideo} onRemove={canManage ? onRemoveEcosystemVideo : null} canManage={canManage} onPlay={onPlayEcosystemVideo} />}
     </section>
   );
 }
@@ -1230,7 +1234,7 @@ function AppContent({ user, onLogout }) {
   const superAdmin = isSuperAdmin(user);
   const previewParams = import.meta.env.DEV ? new URLSearchParams(window.location.search) : null;
   const previewSection = previewParams?.get('ui-section') || '';
-  const initialSection = ['recordings', 'presentations', 'ecosystem'].includes(previewSection) ? previewSection : 'all';
+  const initialSection = ['recordings', 'presentations', 'ecosystem', 'product-videos'].includes(previewSection) ? previewSection : 'all';
   const [section, setSection] = useState(initialSection);
   const [activeNav, setActiveNav] = useState(initialSection === 'all' ? 'overview' : initialSection);
   const [query, setQuery] = useState('');
@@ -1273,7 +1277,7 @@ function AppContent({ user, onLogout }) {
     { id: 'presentationReplays', label: '会议 PPT', items: orderedPresentationReplays },
     { id: 'intelligentPresentations', label: '智能方案', items: intelligentItems },
     { id: 'ecosystemPresentations', label: '生态方案', items: ecosystemItems },
-    { id: 'ecosystemVideos', label: '生态视频', items: ecosystemVideoItems },
+    { id: 'ecosystemVideos', label: '产品视频', items: ecosystemVideoItems },
   ], [ecosystemItems, ecosystemVideoItems, intelligentItems, orderedPresentationReplays, recordingItems]);
 
   React.useEffect(() => {
@@ -1449,9 +1453,9 @@ function AppContent({ user, onLogout }) {
     setOrdering(nextOrdering);
     void publishSnapshot(customPresentations, customRecordings, nextVideos, nextOrdering);
     setQuery('');
-    changeSection('ecosystem');
+    changeSection('product-videos');
     setAddEcosystemVideoDialogOpen(false);
-    requestAnimationFrame(() => document.querySelector('.ecosystem-video-library')?.scrollIntoView({ behavior: 'smooth' }));
+    requestAnimationFrame(() => document.querySelector('.product-video-library')?.scrollIntoView({ behavior: 'smooth' }));
   };
 
   const removeEcosystemVideo = (id) => {
@@ -1473,7 +1477,7 @@ function AppContent({ user, onLogout }) {
 
   return (
     <div className="app-shell">
-      <Sidebar solutionCount={intelligentItems.length} ecosystemCount={ecosystemItems.length + ecosystemVideoItems.length} replayCount={recordingItems.length + presentationReplays.length} section={section} onSectionChange={changeSection} activeNav={activeNav} onActiveNavChange={setActiveNav} open={menuOpen} onClose={() => setMenuOpen(false)} />
+      <Sidebar solutionCount={intelligentItems.length} ecosystemCount={ecosystemItems.length} productVideoCount={ecosystemVideoItems.length} replayCount={recordingItems.length + presentationReplays.length} section={section} onSectionChange={changeSection} activeNav={activeNav} onActiveNavChange={setActiveNav} open={menuOpen} onClose={() => setMenuOpen(false)} />
       <main>
         <Topbar query={query} setQuery={setQuery} onMenu={() => setMenuOpen(true)} user={user} onLogout={onLogout} superAdmin={superAdmin} onPublishingSettings={() => setPublishingDialogOpen(true)} onSortSettings={() => setSortDialogOpen(true)} />
         <Hero onBrowse={browse} onAbout={() => setActiveNav('overview')} />

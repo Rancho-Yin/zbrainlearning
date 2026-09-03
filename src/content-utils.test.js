@@ -7,6 +7,18 @@ test('removes the business report from the intelligent solution catalog', () => 
   assert.equal(presentations.some((item) => item.title === '智显机器人业务汇报'), false);
 });
 
+test('removes the six requested plans while keeping the rest of the catalog', () => {
+  const removedTitles = [
+    '国家电投内蒙古能源公司指挥中心数字人系统方案',
+    '扬州文化传播智脑',
+    'AI牛黄智脑分享',
+    'LivePad在教育行业的应用',
+    '能源行业AI智能应用体系建设方案',
+    '展厅多屏统一联动方案·云边端协同架构',
+  ];
+  assert.equal(removedTitles.some((title) => presentations.some((item) => item.title === title)), false);
+});
+
 test('normalizes shared ecosystem videos and rejects invalid URLs', () => {
   const videos = normalizeSyncedVideos([
     { id: 'v-1', title: '生态视频', url: 'https://cdn.example.com/ecosystem.mp4', category: '生态伙伴', summary: '简介' },

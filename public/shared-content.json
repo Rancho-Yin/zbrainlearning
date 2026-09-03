@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-08-31T09:12:14.322Z",
+  "updatedAt": "2026-09-03T11:45:21.390Z",
   "updatedBy": "yinze1",
   "presentations": [
     {
@@ -226,6 +226,32 @@
     }
   ],
   "recordings": [],
-  "ecosystemVideos": [],
-  "ordering": {}
+  "ecosystemVideos": [
+    {
+      "id": "ecosystem-video-1788435467467-4i33w",
+      "title": "inbox产品介绍（日语版）",
+      "url": "https://static.zbrain.cn/static/dev/1.mp4",
+      "category": "产品介绍",
+      "summary": "主要展示inbox内容生成系统",
+      "cover": "assets/covers/partner-training.png",
+      "createdAt": "2026-09-03",
+      "isCustom": true
+    },
+    {
+      "id": "ecosystem-video-1788435888464-e55ww",
+      "title": "Zbarin智显平台内容智能体介绍",
+      "url": "https://static.zbrain.cn/static/dev/2.mp4",
+      "category": "产品介绍",
+      "summary": "主要针对屏幕做AIGC内容生成",
+      "cover": "assets/covers/partner-training.png",
+      "createdAt": "2026-09-03",
+      "isCustom": true
+    }
+  ],
+  "ordering": {
+    "ecosystemVideos": [
+      "ecosystem-video-1788435888464-e55ww",
+      "ecosystem-video-1788435467467-4i33w"
+    ]
+  }
 }

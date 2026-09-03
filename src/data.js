@@ -93,14 +93,6 @@ export const presentationReplays = [
 // 智能方案讲解按公司、解决方案、案例三类归档。
 export const presentations = [
   {
-    id: 'zhixian-robot-business-report',
-    title: '智显机器人业务汇报',
-    url: 'https://www.wanpinghui.com/s/pad-mr6awgyd-hsmvyl?p=p_aafa3c827820c061',
-    group: 'company',
-    category: '业务汇报',
-    cover: 'assets/covers/partner-training.png',
-  },
-  {
     id: 'ai-showroom-solution',
     title: '智显机器人-AI展厅方案',
     url: 'https://livepad.zbrain.cn/s/pad-msrqboxk-zc248e?p=p_b71f5093762c7caa',

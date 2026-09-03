@@ -1,6 +1,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { applyOrdering, isDirectMediaUrl, normalizeSyncedVideos } from './content-utils.js';
+import { presentations } from './data.js';
+
+test('removes the business report from the intelligent solution catalog', () => {
+  assert.equal(presentations.some((item) => item.title === '智显机器人业务汇报'), false);
+});
 
 test('normalizes shared ecosystem videos and rejects invalid URLs', () => {
   const videos = normalizeSyncedVideos([

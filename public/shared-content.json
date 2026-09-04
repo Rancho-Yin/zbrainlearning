@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-09-04T06:48:07.885Z",
+  "updatedAt": "2026-09-04T06:57:36.665Z",
   "updatedBy": "yinze1",
   "presentations": [
     {
@@ -108,19 +108,6 @@
       "isCustom": true
     },
     {
-      "id": "custom-1787325713075-blvwj",
-      "title": "洲明科技简介",
-      "url": "https://livepad.zbrain.cn/s/pad-msyrp2j3-9ynqql?p=p_0ef934110624e509",
-      "library": "intelligent",
-      "group": "company",
-      "groupLabel": "公司介绍",
-      "groupDescription": "了解智显机器人与合作伙伴的业务能力、品牌定位与核心优势。",
-      "category": "公司介绍",
-      "publishedAt": "2026-08-01",
-      "cover": "assets/covers/ai-showroom.png",
-      "isCustom": true
-    },
-    {
       "id": "custom-1787325847444-m4cfp",
       "title": "恩施文化传播智脑_文旅文化传播策划_视觉版",
       "url": "https://livepad.zbrain.cn/s/pad-msxyknc1-dvnutt?p=p_a11a58c0fa9b0096",
@@ -222,19 +209,6 @@
       "category": "自定义方案",
       "publishedAt": "2026-08-01",
       "cover": "assets/covers/partner-training.png",
-      "isCustom": true
-    },
-    {
-      "id": "custom-1788504265874-ntk0m",
-      "title": "智显业务介绍",
-      "url": "https://livepad.zbrain.cn/s/pad-mrvwbs4e-w2uyws?p=p_380506a6afac002c",
-      "library": "intelligent",
-      "group": "company",
-      "groupLabel": "公司介绍",
-      "groupDescription": "了解智显机器人与合作伙伴的业务能力、品牌定位与核心优势。",
-      "category": "公司加噩耗",
-      "publishedAt": "2026-09-01",
-      "cover": "assets/covers/digital-media-education.png",
       "isCustom": true
     }
   ],

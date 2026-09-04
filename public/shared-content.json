@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-09-04T07:01:02.758Z",
+  "updatedAt": "2026-09-04T07:01:30.190Z",
   "updatedBy": "yinze1",
   "presentations": [
     {
@@ -236,6 +236,19 @@
       "publishedAt": "2026-09-01",
       "cover": "assets/covers/digital-media-education.png",
       "isCustom": true
+    },
+    {
+      "id": "custom-1788505290187-4taja",
+      "title": "LivePad在教育场景的运用",
+      "url": "https://livepad.zbrain.cn/s/pad-mrvwbs4e-w2uyws?p=p_380506a6afac002c",
+      "library": "intelligent",
+      "group": "solution",
+      "groupLabel": "解决方案介绍",
+      "groupDescription": "按展厅、教育、能源与 AIGC 等场景查找可直接讲解的方案。",
+      "category": "教育案列",
+      "publishedAt": "2026-09-01",
+      "cover": "assets/covers/partner-training.png",
+      "isCustom": true
     }
   ],
   "recordings": [],
@@ -267,6 +280,7 @@
       "ecosystem-video-1788435467467-4i33w"
     ],
     "intelligentPresentations": [
+      "custom-1788505290187-4taja",
       "custom-1788505184583-kfjg2"
     ]
   }

@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-09-04T06:57:36.665Z",
+  "updatedAt": "2026-09-04T06:58:01.738Z",
   "updatedBy": "yinze1",
   "presentations": [
     {
@@ -209,6 +209,19 @@
       "category": "自定义方案",
       "publishedAt": "2026-08-01",
       "cover": "assets/covers/partner-training.png",
+      "isCustom": true
+    },
+    {
+      "id": "custom-1787325713075-blvwj",
+      "title": "洲明科技简介",
+      "url": "https://livepad.zbrain.cn/s/pad-msyrp2j3-9ynqql?p=p_0ef934110624e509",
+      "library": "intelligent",
+      "group": "company",
+      "groupLabel": "公司介绍",
+      "groupDescription": "了解智显机器人与合作伙伴的业务能力、品牌定位与核心优势。",
+      "category": "公司介绍",
+      "publishedAt": "2026-08-01",
+      "cover": "assets/covers/ai-showroom.png",
       "isCustom": true
     }
   ],

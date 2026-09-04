@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-09-04T06:44:36.201Z",
+  "updatedAt": "2026-09-04T06:45:25.944Z",
   "updatedBy": "yinze1",
   "presentations": [
     {
@@ -266,8 +266,6 @@
       "ecosystem-video-1788435888464-e55ww",
       "ecosystem-video-1788435467467-4i33w"
     ],
-    "intelligentPresentations": [
-      "custom-1788504265874-ntk0m"
-    ]
+    "intelligentPresentations": []
   }
 }

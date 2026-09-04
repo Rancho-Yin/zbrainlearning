@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-09-03T14:08:06.906Z",
+  "updatedAt": "2026-09-04T06:43:57.987Z",
   "updatedBy": "yinze1",
   "presentations": [
     {
@@ -223,32 +223,6 @@
       "publishedAt": "2026-08-01",
       "cover": "assets/covers/partner-training.png",
       "isCustom": true
-    },
-    {
-      "id": "custom-1788436056341-t53cu",
-      "title": "智显机器人业务汇报",
-      "url": "https://livepad.zbrain.cn/s/pad-mr6awgyd-hsmvyl?p=p_aafa3c827820c061%20AI%E5%B1%95%E5%8E%85%E6%96%B9%E6%A1%88%20https://livepad.zbrain.cn/s/pad-msrqboxk-zc248e?p=p_b71f5093762c7caa%20%E4%BA%91%E8%BE%B9%E7%AB%AF%E6%96%B9%E6%A1%88%20https://livepad.zbrain.cn/s/pad-mt88ugu3-7266w9?p=p_dd67093e2281e3ef",
-      "library": "intelligent",
-      "group": "company",
-      "groupLabel": "公司介绍",
-      "groupDescription": "了解智显机器人与合作伙伴的业务能力、品牌定位与核心优势。",
-      "category": "公司介绍",
-      "publishedAt": "2026-09-01",
-      "cover": "assets/covers/ai-showroom.png",
-      "isCustom": true
-    },
-    {
-      "id": "custom-1788444468337-g4430",
-      "title": "LivePad在教育行业的应用",
-      "url": "https://livepad.zbrain.cn/s/pad-mrvwbs4e-w2uyws?p=p_380506a6afac002c",
-      "library": "intelligent",
-      "group": "solution",
-      "groupLabel": "解决方案介绍",
-      "groupDescription": "按展厅、教育、能源与 AIGC 等场景查找可直接讲解的方案。",
-      "category": "解决方案",
-      "publishedAt": "2026-09-01",
-      "cover": "assets/covers/ai-showroom.png",
-      "isCustom": true
     }
   ],
   "recordings": [],
@@ -279,9 +253,6 @@
       "ecosystem-video-1788435888464-e55ww",
       "ecosystem-video-1788435467467-4i33w"
     ],
-    "intelligentPresentations": [
-      "custom-1788444468337-g4430",
-      "custom-1788436056341-t53cu"
-    ]
+    "intelligentPresentations": []
   }
 }

@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-09-04T07:02:50.920Z",
+  "updatedAt": "2026-09-04T07:03:27.199Z",
   "updatedBy": "yinze1",
   "presentations": [
     {
@@ -275,10 +275,53 @@
     }
   ],
   "ordering": {
+    "recordings": [
+      "2026-08-08",
+      "2026-07-31",
+      "2026-07-24",
+      "2026-07-17",
+      "2026-07-10",
+      "2026-07-03"
+    ],
+    "presentationReplays": [
+      "august-partner-training",
+      "july-partner-training",
+      "zhixian-ai-training-camp",
+      "ai-partner-training-camp-welcome-speech"
+    ],
+    "intelligentPresentations": [
+      "custom-1788505184583-kfjg2",
+      "custom-1786955477367-4x3dl",
+      "custom-1788505290187-4taja",
+      "custom-1787325847444-m4cfp",
+      "custom-1787325884889-73x70",
+      "custom-1787736229309-fxxtm",
+      "custom-1787736309373-f93cn",
+      "custom-1788139663946-hbbh6",
+      "custom-1788139770403-ap2w7",
+      "custom-1788167335826-js7po",
+      "custom-1787325713075-blvwj",
+      "ai-showroom-solution",
+      "ai-solution-sales-assistant-01",
+      "smart-space-technology-solution",
+      "zbrain-aigc-business-solution",
+      "digital-media-discipline",
+      "kejindasha-ai-native-showcase-case",
+      "jilin-university-zhengyuan-ai-showroom"
+    ],
+    "ecosystemPresentations": [
+      "custom-1787325286633-bhuvl",
+      "custom-1787325346043-to1vj",
+      "custom-1787325384682-droux",
+      "custom-1787325491215-u7q3v",
+      "custom-1787325528491-0jg83",
+      "custom-1787325565576-wzyuh",
+      "custom-1787325623447-ddlyw",
+      "custom-1787325956965-k7m24"
+    ],
     "ecosystemVideos": [
       "ecosystem-video-1788435888464-e55ww",
       "ecosystem-video-1788435467467-4i33w"
-    ],
-    "intelligentPresentations": []
+    ]
   }
 }

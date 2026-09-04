@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-09-04T07:01:35.546Z",
+  "updatedAt": "2026-09-04T07:02:35.467Z",
   "updatedBy": "yinze1",
   "presentations": [
     {
@@ -249,6 +249,19 @@
       "publishedAt": "2026-09-01",
       "cover": "assets/covers/partner-training.png",
       "isCustom": true
+    },
+    {
+      "id": "custom-1788504265874-ntk0m",
+      "title": "智显业务介绍",
+      "url": "https://livepad.zbrain.cn/s/pad-mrvwbs4e-w2uyws?p=p_380506a6afac002c",
+      "library": "intelligent",
+      "group": "company",
+      "groupLabel": "公司介绍",
+      "groupDescription": "了解智显机器人与合作伙伴的业务能力、品牌定位与核心优势。",
+      "category": "公司加噩耗",
+      "publishedAt": "2026-09-01",
+      "cover": "assets/covers/digital-media-education.png",
+      "isCustom": true
     }
   ],
   "recordings": [],
@@ -279,9 +292,6 @@
       "ecosystem-video-1788435888464-e55ww",
       "ecosystem-video-1788435467467-4i33w"
     ],
-    "intelligentPresentations": [
-      "custom-1788505290187-4taja",
-      "custom-1788505184583-kfjg2"
-    ]
+    "intelligentPresentations": []
   }
 }

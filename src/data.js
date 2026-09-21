@@ -1,7 +1,7 @@
 export const recordings = [
   {
     id: '2026-09-18',
-    title: '第十三期课程培训通知',
+    title: '智能空间部署与展厅1.0演示',
     summary: '智能空间部署与展厅1.0平台应用',
     date: '2026-09-18',
     time: '13:49',
@@ -10,7 +10,7 @@ export const recordings = [
   },
   {
     id: '2026-09-11',
-    title: '第十二次培训通知',
+    title: '展厅指挥中心联动与销售助手升级',
     summary: '展厅指挥中心联动与销售助手能力升级',
     date: '2026-09-11',
     time: '13:48',
@@ -19,7 +19,7 @@ export const recordings = [
   },
   {
     id: '2026-09-04',
-    title: '第十一次培训课程通知',
+    title: '私有化智能体、牛黄智脑与会议室AI',
     summary: '私有化模型智能体与会议室AI应用',
     date: '2026-09-04',
     time: '13:44',
@@ -28,7 +28,7 @@ export const recordings = [
   },
   {
     id: '2026-08-29',
-    title: '第十次培训课程通知',
+    title: '产品架构、客户沟通与本地化部署',
     summary: '产品架构与本地化部署能力提升',
     date: '2026-08-29',
     time: '13:46',
@@ -37,7 +37,7 @@ export const recordings = [
   },
   {
     id: '2026-08-22',
-    title: '第九次AI培训课程',
+    title: 'AI战略、解决方案助手与一笔控全场',
     summary: 'AI通知课与战略发展、解决方案助手、AI科普与一笔控全场技术',
     date: '2026-08-22',
     time: '13:44',
@@ -46,7 +46,7 @@ export const recordings = [
   },
   {
     id: '2026-08-15',
-    title: '第七次AI训战营课程表',
+    title: '营销与销售助手实操及产品沟通',
     summary: '营销助手实操、销售助手链接发放、产品核心卖点与销售落地',
     date: '2026-08-15',
     time: '13:47',

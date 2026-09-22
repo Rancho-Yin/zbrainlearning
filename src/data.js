@@ -113,6 +113,30 @@ export const recordings = [
 // 培训类 PPT 与会议录像放在同一个“会议回放”模块中。
 export const presentationReplays = [
   {
+    id: 'smart-space-deployment-chain',
+    title: '智能空间部署链路详解',
+    url: 'https://livepad.zbrain.cn/s/pad-muampqph-d7ltlu?p=p_ad1c531970069223',
+    category: '训战课程',
+    cover: 'assets/covers/ai-showroom.png',
+    publishedAt: '2026-09-22',
+  },
+  {
+    id: 'one-control-multi-screen-showroom',
+    title: '一笔控全场-展厅多屏控制与智能讲解方案',
+    url: 'https://livepad.zbrain.cn/s/pad-muaj97y8-4eyo28?p=p_ad1c531970069223',
+    category: '训战课程',
+    cover: 'assets/covers/partner-training.png',
+    publishedAt: '2026-09-22',
+  },
+  {
+    id: 'ai-solution-marketing-assistant-replay',
+    title: 'AI解决方案营销助手',
+    url: 'https://livepad.zbrain.cn/s/pad-mua11kck-o5uemy?p=p_ad1c531970069223',
+    category: '训战课程',
+    cover: 'assets/covers/digital-media-education.png',
+    publishedAt: '2026-09-22',
+  },
+  {
     id: 'august-partner-training',
     title: '8月代理商推广培训开营',
     url: 'https://livepad.zbrain.cn/s/pad-msshgszo-f85na7?p=p_b71f5093762c7caa',

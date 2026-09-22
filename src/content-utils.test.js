@@ -22,7 +22,23 @@ test('new training recordings retain their dates, links, phases and topic overvi
     assert.ok(matches[0].summary.includes(overview));
   }
   assert.equal(new Set(recordings.map((item) => item.url)).size, recordings.length);
-  assert.equal(presentationReplays.length, 4);
+});
+
+test('new training presentations appear once with their exact titles and links', () => {
+  const expected = [
+    ['智能空间部署链路详解', 'https://livepad.zbrain.cn/s/pad-muampqph-d7ltlu?p=p_ad1c531970069223'],
+    ['一笔控全场-展厅多屏控制与智能讲解方案', 'https://livepad.zbrain.cn/s/pad-muaj97y8-4eyo28?p=p_ad1c531970069223'],
+    ['AI解决方案营销助手', 'https://livepad.zbrain.cn/s/pad-mua11kck-o5uemy?p=p_ad1c531970069223'],
+  ];
+  assert.equal(presentationReplays.length, 7);
+  for (const [title, url] of expected) {
+    const matches = presentationReplays.filter((item) => item.url === url);
+    assert.equal(matches.length, 1, `expected one PPT for ${url}`);
+    assert.equal(matches[0].title, title);
+    assert.equal(matches[0].category, '训战课程');
+    assert.equal(matches[0].publishedAt, '2026-09-22');
+  }
+  assert.deepEqual(presentationReplays.slice(0, 3).map((item) => item.title), expected.map(([title]) => title));
 });
 
 test('removes the business report from the intelligent solution catalog', () => {

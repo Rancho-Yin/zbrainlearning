@@ -1,0 +1,58 @@
+/* A removable cover skin. Existing typography, copy, links and data stay in place. */
+html[data-cover-theme='mid-autumn'] .hero {
+  background: radial-gradient(ellipse at 80% 42%, #49304a 0, transparent 54%), linear-gradient(118deg, #130c23, #241331 65%, #191022);
+}
+html[data-cover-theme='mid-autumn'] .hero::before { background: linear-gradient(90deg, transparent, #c9a46b, transparent); }
+html[data-cover-theme='mid-autumn'] .hero-grid { opacity: .16; }
+html[data-cover-theme='mid-autumn'] .hero h1 span:last-child { color: #f1d6a1; }
+html[data-cover-theme='mid-autumn'] .hero-brand-line span { color: #c5b6c3; border-color: #776052; }
+html[data-cover-theme='mid-autumn'] .hero-copy > p { color: #c0b5c5; }
+html[data-cover-theme='mid-autumn'] .hero .primary-button { color: #301b36; background: #edd3a0; border-color: #ffebc6; box-shadow: 0 10px 30px #c79c5120; }
+html[data-cover-theme='mid-autumn'] .hero .primary-button:hover { background: #fff0ce; }
+html[data-cover-theme='mid-autumn'] .hero .secondary-button { color: #eee0d0; border-color: #70596c; }
+html[data-cover-theme='mid-autumn'] .hero .secondary-button:hover { border-color: #e1ba83; }
+html[data-cover-theme='mid-autumn'] .hero-proof span { color: #c2b0c4; }
+html[data-cover-theme='mid-autumn'] .hero-proof svg { color: #edcf98; }
+html[data-cover-theme='mid-autumn'] .hero-visual { background: url('./assets/mid-autumn.svg') center / contain no-repeat; min-height: 510px; }
+html[data-cover-theme='mid-autumn'] .hero-visual .visual-grid,
+html[data-cover-theme='mid-autumn'] .hero-visual .visual-ring,
+html[data-cover-theme='mid-autumn'] .hero-visual .visual-axis,
+html[data-cover-theme='mid-autumn'] .hero-visual .core-scan,
+html[data-cover-theme='mid-autumn'] .hero-visual .signal-bars { display: none; }
+html[data-cover-theme='mid-autumn'] .hero-visual .ai-core {
+  width: 190px; height: 174px; margin-top: -60px; margin-left: 12px; transform: none;
+  background: transparent; border: 0; box-shadow: none; overflow: visible;
+}
+html[data-cover-theme='mid-autumn'] .ai-core > * { transform: none; }
+html[data-cover-theme='mid-autumn'] .ai-core > svg { color: #75503f; }
+html[data-cover-theme='mid-autumn'] .ai-core strong { color: #654038; font-size: 64px; font-weight: 500; }
+html[data-cover-theme='mid-autumn'] .ai-core small { color: #75513d; font-size: 7px; }
+html[data-cover-theme='mid-autumn'] .data-node { border-color: #a786625e; background: #22132bd9; border-radius: 3px; }
+html[data-cover-theme='mid-autumn'] .data-node span { color: #efce96; border-color: #6f535d; }
+html[data-cover-theme='mid-autumn'] .data-node small { color: #c0a7bc; }
+html[data-cover-theme='mid-autumn'] .node-one { top: 11%; left: 22%; }
+html[data-cover-theme='mid-autumn'] .node-two { right: 0; top: 50%; }
+html[data-cover-theme='mid-autumn'] .node-three { left: 5%; bottom: 5%; }
+
+/* The signed-out cover uses the same festive artwork without covering the form. */
+html[data-cover-theme='mid-autumn'] .auth-story { background: radial-gradient(ellipse at 100% 15%, #54324d, transparent 60%), #171024; }
+html[data-cover-theme='mid-autumn'] .auth-story::before { background: linear-gradient(90deg, #9771b2, #eed5a3); }
+html[data-cover-theme='mid-autumn'] .auth-story::after { top: 3%; right: 0; width: 56%; transform: none; border: 0; box-shadow: none; background: url('./assets/mid-autumn.svg') center / contain no-repeat; opacity: .52; }
+html[data-cover-theme='mid-autumn'] .auth-story-copy h1 { color: #fff4df; }
+html[data-cover-theme='mid-autumn'] .auth-story-copy::before,
+html[data-cover-theme='mid-autumn'] .auth-capability-list b { color: #eccb91; }
+html[data-cover-theme='mid-autumn'] .auth-story-copy h1::after { background: #d6b37a; }
+html[data-cover-theme='mid-autumn'] .auth-story-copy p { color: #c2b3c8; }
+
+@media (max-width: 800px) {
+  html[data-cover-theme='mid-autumn'] .hero-visual { min-height: 370px; margin-top: 18px; }
+  html[data-cover-theme='mid-autumn'] .hero-visual .ai-core { width: 130px; height: 140px; margin-top: -44px; margin-left: 10px; }
+  html[data-cover-theme='mid-autumn'] .ai-core strong { font-size: 46px; }
+  html[data-cover-theme='mid-autumn'] .ai-core > svg { width: 21px; height: 21px; }
+  html[data-cover-theme='mid-autumn'] .ai-core small { font-size: 5px; }
+  html[data-cover-theme='mid-autumn'] .node-one { left: 25%; top: 6%; }
+  html[data-cover-theme='mid-autumn'] .node-two { top: 46%; right: 0; }
+  html[data-cover-theme='mid-autumn'] .node-three { left: 0; bottom: 2%; }
+  html[data-cover-theme='mid-autumn'] .auth-mobile-brand { position: relative; padding-right: 44px; }
+  html[data-cover-theme='mid-autumn'] .auth-mobile-brand::after { content: ''; position: absolute; right: 0; top: 0; width: 42px; height: 42px; border-radius: 50%; background: radial-gradient(circle at 32% 28%, #fff7de, #ead39e 70%, #cfa674); box-shadow: 0 0 18px #ecd5a866; }
+}

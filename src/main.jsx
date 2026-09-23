@@ -57,6 +57,8 @@ import {
   validatePublishingToken,
 } from './github-content';
 import './styles.css';
+import './cover-theme.css';
+import { COVER_THEME } from './cover-theme';
 
 const LOGO_SRC = `${import.meta.env.BASE_URL}assets/zhixian-robot-logo.png`;
 const COVER_ASSETS = [
@@ -1523,4 +1525,5 @@ function App() {
   return <AppContent user={authState.user} onLogout={signOut} />;
 }
 
+document.documentElement.dataset.coverTheme = COVER_THEME;
 createRoot(document.getElementById('root')).render(<React.StrictMode><App /></React.StrictMode>);

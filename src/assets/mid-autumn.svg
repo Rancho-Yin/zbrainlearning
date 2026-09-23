@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 600" fill="none">
+  <defs>
+    <radialGradient id="halo"><stop stop-color="#EFC981" stop-opacity=".26"/><stop offset="1" stop-color="#EFC981" stop-opacity="0"/></radialGradient>
+    <radialGradient id="moon" cx=".34" cy=".27" r=".83"><stop stop-color="#FFF9DD"/><stop offset=".52" stop-color="#F9E4B0"/><stop offset="1" stop-color="#CCA267"/></radialGradient>
+    <linearGradient id="cloud" x1="90" y1="370" x2="520" y2="530" gradientUnits="userSpaceOnUse"><stop stop-color="#6E477B"/><stop offset=".5" stop-color="#392749"/><stop offset="1" stop-color="#20172D"/></linearGradient>
+    <linearGradient id="silk" x1="80" y1="72" x2="150" y2="161" gradientUnits="userSpaceOnUse"><stop stop-color="#F3D39B"/><stop offset=".55" stop-color="#B78655"/><stop offset="1" stop-color="#5B344D"/></linearGradient>
+    <pattern id="paper" width="29" height="31" patternUnits="userSpaceOnUse"><circle cx="5" cy="9" r=".7" fill="#A37B45" opacity=".16"/><circle cx="21" cy="26" r=".5" fill="#FFF8DB" opacity=".4"/></pattern>
+    <clipPath id="disc"><circle cx="308" cy="262" r="161"/></clipPath>
+    <g id="bloom" fill="#E8C284"><ellipse cy="-4" rx="2.4" ry="4"/><ellipse cy="4" rx="2.4" ry="4"/><ellipse cx="-4" rx="4" ry="2.4"/><ellipse cx="4" rx="4" ry="2.4"/><circle r="1.6" fill="#FFF3C9"/></g>
+  </defs>
+  <circle cx="308" cy="262" r="250" fill="url(#halo)"/>
+  <circle cx="308" cy="262" r="184" stroke="#D9B982" stroke-opacity=".32" stroke-width=".8"/>
+  <circle cx="308" cy="262" r="172" stroke="#D9B982" stroke-opacity=".2" stroke-dasharray="1 8"/>
+  <circle cx="308" cy="262" r="161" fill="url(#moon)"/>
+  <g clip-path="url(#disc)">
+    <path d="M368 98c-75 55-12 83 19 85 52 5 28 51-3 81-36 35 15 88 69 65 47-20 58-157-1-212Z" fill="#BA9469" opacity=".11"/>
+    <path d="M156 223c75-5 53 73 80 106 27 34 61 17 75 50 8 20-8 38-24 46l-141-51Z" fill="#B49365" opacity=".09"/>
+    <circle cx="308" cy="262" r="161" fill="url(#paper)"/>
+    <circle cx="308" cy="262" r="157" stroke="#FFFAE5" stroke-opacity=".55"/>
+  </g>
+  <!-- Quiet constellation points echo the platform's AI visual language. -->
+  <g fill="#F5D9A4"><circle cx="183" cy="67" r="1.6"/><circle cx="503" cy="268" r="2"/><circle cx="89" cy="293" r="1.8"/><circle cx="455" cy="475" r="1.6"/><circle cx="228" cy="499" r="1.4"/></g>
+  <path d="m478 137 3 8 8 3-8 3-3 8-3-8-8-3 8-3Z" fill="#E7C482"/>
+  <path d="m138 342 2 6 6 2-6 2-2 6-2-6-6-2 6-2Z" fill="#E7C482" opacity=".65"/>
+  <!-- Osmanthus branches and blossoms. -->
+  <g stroke="#B89565" stroke-width="1.6" stroke-linecap="round">
+    <path d="M591 30c-46 18-66 84-150 134M551 72l-8-41M516 110l-32-14M482 140l-13 30M559 62l29 5"/>
+    <path d="M558 55c-19-2-26-10-27-21 15 0 25 7 27 21Zm-31 44c8-18 23-23 35-21-6 14-19 20-35 21Zm-29 27c-13-3-20-13-18-24 12 3 20 12 18 24Zm-32 25c10-1 22 5 24 15-11 4-22-3-24-15Z" fill="#92795B" fill-opacity=".42" stroke-width=".6"/>
+  </g>
+  <use href="#bloom" x="542" y="47"/><use href="#bloom" x="566" y="78"/><use href="#bloom" x="499" y="101"/><use href="#bloom" x="465" y="171"/>
+  <use href="#bloom" x="513" y="134" transform="rotate(20 513 134) scale(.99)"/>
+  <!-- Silk lantern suspended beside the moon. -->
+  <path d="M104 0v76" stroke="#DCC092" stroke-opacity=".7"/>
+  <path d="M85 80h38v7H85z" fill="#D0AE77"/>
+  <path d="M85 87c-30 17-29 65 0 81h38c28-16 29-64 0-81Z" fill="url(#silk)" stroke="#E7C38A"/>
+  <path d="M91 87c-15 25-15 55 0 81m13-81v81m13-81c15 25 15 55 0 81" stroke="#FFE3AB" stroke-opacity=".55"/>
+  <path d="M85 168h38v6H85zm16 6h6v8h-6z" fill="#D6B17D"/>
+  <path d="M104 182v32m-4-20v19m8-19v19" stroke="#D8B580" stroke-width="2"/>
+  <!-- Layered silk clouds. -->
+  <path d="M70 433c25-37 72-23 86-14 2-47 71-57 100-19 28-15 68-2 69 27 23-8 47 7 55 25H70Z" fill="url(#cloud)" stroke="#B99B7C" stroke-opacity=".42"/>
+  <path d="M83 437c35-18 73 10 111-5 36-15 62 13 98 4m-134-17c22-17 40-15 55-2m-34-14c13-21 47-19 56 2" stroke="#DBBE94" stroke-opacity=".48" stroke-linecap="round"/>
+  <path d="M258 473c14-20 38-29 63-18 3-30 47-44 69-21 15-53 73-63 105-21 18-10 59-8 68 20 12 2 24 9 29 21v35H258Z" fill="url(#cloud)" stroke="#CEAF81" stroke-opacity=".55"/>
+  <path d="M294 478c30-18 59 8 87-5 39-20 50 16 82-1 27-14 70-17 100-9M408 433c7-24 38-34 57-14m-68 24c20-8 31 0 44 5m42-10c12-6 27-4 33 4" stroke="#DEBE91" stroke-opacity=".55" stroke-linecap="round"/>
+  <!-- Jade rabbit looking toward the moon. -->
+  <g fill="#F7E6C5" stroke="#E4C999" stroke-width=".8">
+    <ellipse cx="453" cy="410" rx="23" ry="19" transform="rotate(-15 453 410)"/>
+    <circle cx="434" cy="389" r="13"/>
+    <ellipse cx="426" cy="369" rx="4.6" ry="18" transform="rotate(-15 426 369)"/>
+    <ellipse cx="438" cy="369" rx="4.2" ry="18" transform="rotate(8 438 369)"/>
+    <circle cx="477" cy="406" r="7"/>
+    <path d="M441 417c-6 1-11 5-11 9h26c5-4 4-9 0-11"/>
+  </g>
+  <circle cx="431" cy="387" r="1.6" fill="#5D4057"/>
+  <path d="m421 392 5 1" stroke="#9D795D" stroke-linecap="round"/>
+  <path d="M61 492c74 21 133-10 209 9s130 23 195 7" stroke="#C9A577" stroke-opacity=".32" stroke-linecap="round"/>
+  <path d="M102 508c41 5 84-10 124 0m63 7c36 9 66 10 100 8" stroke="#C9A577" stroke-opacity=".2" stroke-linecap="round"/>
+</svg>

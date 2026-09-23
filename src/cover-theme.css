@@ -1,4 +1,4 @@
-/* A removable cover skin. Existing typography, copy, links and data stay in place. */
+/* A removable cover skin. Existing copy, links and data stay in place. */
 html[data-cover-theme='mid-autumn'] .hero {
   background: radial-gradient(ellipse at 80% 42%, #49304a 0, transparent 54%), linear-gradient(118deg, #130c23, #241331 65%, #191022);
 }
@@ -44,7 +44,56 @@ html[data-cover-theme='mid-autumn'] .auth-capability-list b { color: #eccb91; }
 html[data-cover-theme='mid-autumn'] .auth-story-copy h1::after { background: #d6b37a; }
 html[data-cover-theme='mid-autumn'] .auth-story-copy p { color: #c2b3c8; }
 
+.seasonal-greeting { display: none; }
+html[data-cover-theme='mid-autumn'] .seasonal-greeting {
+  display: block; margin-top: 26px; padding-top: 22px;
+  border-top: 1px solid #caa77b40;
+}
+html[data-cover-theme='mid-autumn'] .seasonal-greeting .greeting-recipient {
+  margin: 0 0 12px; color: #dfc3a0; font-size: 11px; letter-spacing: .16em; line-height: 1.6;
+}
+html[data-cover-theme='mid-autumn'] .seasonal-greeting h2 {
+  margin: 0 0 16px; display: flex; align-items: center; gap: 17px;
+  color: #f5dfb4; font-family: 'Songti SC', 'STSong', 'Noto Serif CJK SC', serif;
+  font-size: clamp(28px, 2.7vw, 39px); font-weight: 500; letter-spacing: .06em; line-height: 1.4;
+}
+.seasonal-greeting h2 span { white-space: nowrap; }
+.seasonal-greeting h2 i { flex: 0 0 4px; width: 4px; height: 4px; border-radius: 50%; background: #c4a475; }
+html[data-cover-theme='mid-autumn'] .seasonal-greeting .greeting-message {
+  margin: 0; color: #dccdcf; font-size: 13px; font-weight: 400; line-height: 1.95;
+}
+html[data-cover-theme='mid-autumn'] .seasonal-greeting .greeting-signature {
+  margin: 13px 0 0; color: #debd87; font-size: 11px; letter-spacing: .12em; line-height: 1.6;
+}
+.greeting-signature span { padding-left: 9px; color: #ae97ab; }
+.greeting-mobile-break { display: none; }
+html[data-cover-theme='mid-autumn'] .hero { padding-top: 54px; padding-bottom: 54px; }
+html[data-cover-theme='mid-autumn'] .hero h1 { font-size: clamp(38px, 3.4vw, 52px); }
+html[data-cover-theme='mid-autumn'] .hero-copy > p { margin-top: 22px; margin-bottom: 25px; font-size: 12px; }
+html[data-cover-theme='mid-autumn'] .hero-brand-line { margin-bottom: 24px; }
+html[data-cover-theme='mid-autumn'] .hero-proof { margin-top: 22px; }
+html[data-cover-theme='mid-autumn'] .auth-story-copy { margin-bottom: 5vh; }
+html[data-cover-theme='mid-autumn'] .auth-story-copy h1 { font-size: clamp(32px, 3.2vw, 48px); }
+html[data-cover-theme='mid-autumn'] .auth-story-copy h1::after { margin-top: 22px; }
+html[data-cover-theme='mid-autumn'] .auth-story-copy > p { margin-top: 20px; font-size: 12px; }
+html[data-cover-theme='mid-autumn'] .auth-story::after { width: 46%; opacity: .32; }
+html[data-cover-theme='mid-autumn'] .seasonal-greeting--login h2 { font-size: clamp(26px, 2.5vw, 36px); }
+html[data-cover-theme='mid-autumn'] .seasonal-greeting--mobile { display: none; }
+
 @media (max-width: 800px) {
+  html[data-cover-theme='mid-autumn'] .hero { padding-top: 38px; }
+  html[data-cover-theme='mid-autumn'] .hero h1 { font-size: 40px; }
+  html[data-cover-theme='mid-autumn'] .seasonal-greeting { margin-top: 22px; padding-top: 20px; }
+  html[data-cover-theme='mid-autumn'] .seasonal-greeting h2 { font-size: clamp(24px, 6.8vw, 32px); gap: 12px; }
+  html[data-cover-theme='mid-autumn'] .seasonal-greeting .greeting-message { font-size: 12px; }
+  .greeting-mobile-break { display: initial; }
+  html[data-cover-theme='mid-autumn'] .seasonal-greeting--mobile { display: block; margin: 0 0 28px; padding: 0 0 22px; border-top: 0; border-bottom: 1px solid #d4bb944a; }
+  html[data-cover-theme='mid-autumn'] .seasonal-greeting--mobile h2 { color: #785234; }
+  html[data-cover-theme='mid-autumn'] .seasonal-greeting--mobile .greeting-recipient { color: #927353; font-size: 10px; }
+  html[data-cover-theme='mid-autumn'] .seasonal-greeting--mobile .greeting-message { color: #766a78; }
+  html[data-cover-theme='mid-autumn'] .seasonal-greeting--mobile .greeting-signature { color: #896542; }
+  html[data-cover-theme='mid-autumn'] .auth-mobile-brand,
+  html[data-cover-theme='mid-autumn'] .auth-form-wrap.is-register .auth-mobile-brand { margin-bottom: 23px; }
   html[data-cover-theme='mid-autumn'] .hero-visual { min-height: 370px; margin-top: 18px; }
   html[data-cover-theme='mid-autumn'] .hero-visual .ai-core { width: 130px; height: 140px; margin-top: -44px; margin-left: 10px; }
   html[data-cover-theme='mid-autumn'] .ai-core strong { font-size: 46px; }

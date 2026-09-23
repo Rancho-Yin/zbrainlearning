@@ -59,6 +59,7 @@ import {
 import './styles.css';
 import './cover-theme.css';
 import { COVER_THEME } from './cover-theme';
+import MidAutumnGreeting from './MidAutumnGreeting';
 
 const LOGO_SRC = `${import.meta.env.BASE_URL}assets/zhixian-robot-logo.png`;
 const COVER_ASSETS = [
@@ -314,6 +315,7 @@ function Hero({ onBrowse, onAbout }) {
       <div className="hero-copy">
         <div className="hero-brand-line"><img src={LOGO_SRC} alt="" /><span>代理商成长与销售赋能平台</span></div>
         <h1><span>智显机器人</span><span>AI训战中心</span></h1>
+        <MidAutumnGreeting />
         <p>面向智显机器人全国代理商打造的知识与实战平台。系统学习产品价值、场景方案、演示方法与销售策略，把专业能力转化为客户信任，把每一次学习转化为业务增长。</p>
         <div className="hero-actions">
           <button className="primary-button" onClick={onBrowse}>开启赋能学习 <ChevronRight /></button>
@@ -1172,6 +1174,7 @@ function LoginPage({ onAuthenticated, initialError = '', onRetry }) {
         <div className="auth-story-copy">
           <h1>让学习能力，<br />成为代理商的成交能力。</h1>
           <p>通过 ZBrain 统一账号进入产品学习、智能方案与会议回放，把知识快速转化为客户沟通和项目推进能力。</p>
+          <MidAutumnGreeting variant="login" />
         </div>
         <div className="auth-capability-list">
           <span><b>01</b><strong>理解产品</strong><small>讲清产品价值</small></span>
@@ -1184,6 +1187,7 @@ function LoginPage({ onAuthenticated, initialError = '', onRetry }) {
       <section className="auth-form-panel">
         <div className={`auth-form-wrap ${mode === 'register' ? 'is-register' : ''}`}>
           <div className="auth-mobile-brand"><img src={LOGO_SRC} alt="智显机器人" /><span>AI训战中心</span></div>
+          <MidAutumnGreeting variant="mobile" />
           <div className="auth-heading">
             <span>{mode === 'login' ? 'WELCOME BACK' : 'CREATE ZBRAIN ACCOUNT'}</span>
             <h2>{mode === 'login' ? '登录 AI 训战中心' : '注册 ZBrain 账号'}</h2>

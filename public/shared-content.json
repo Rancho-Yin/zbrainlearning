@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-09-04T07:05:31.423Z",
+  "updatedAt": "2026-11-12T00:00:00.000Z",
   "updatedBy": "yinze1",
   "presentations": [
     {
@@ -251,7 +251,58 @@
       "isCustom": true
     }
   ],
-  "recordings": [],
+  "recordings": [
+    {
+      "id": "shared-recording-2026-11-06",
+      "title": "AI产品对比及市场分析",
+      "summary": "智显机器人AI训战营第十七期，由销售总监王立刚主讲，围绕AI产品对比与市场分析展开培训。",
+      "date": "2026-11-06",
+      "time": "13:51",
+      "url": "https://meeting.tencent.com/crm/NA59or1W69",
+      "phase": "第 17 期",
+      "isCustom": true
+    },
+    {
+      "id": "shared-recording-2026-10-30",
+      "title": "从AI生成到三维互动展示",
+      "summary": "主要介绍三维互动以及AI和真实空间解决方案。",
+      "date": "2026-10-30",
+      "time": "13:47",
+      "url": "https://meeting.tencent.com/crm/N80jznnXb2",
+      "phase": "训战课程",
+      "isCustom": true
+    },
+    {
+      "id": "shared-recording-2026-10-23",
+      "title": "万物皆知识，万物皆内容，万物皆互动",
+      "summary": "介绍新的空间解决方案，围绕空间感知与互动展开讲解。",
+      "date": "2026-10-23",
+      "time": "13:49",
+      "url": "https://meeting.tencent.com/crm/KD6z91aBba",
+      "phase": "训战课程",
+      "isCustom": true
+    },
+    {
+      "id": "shared-recording-2026-10-16",
+      "title": "智显空间解决方案与大空间四维方案",
+      "summary": "主要介绍智显空间解决方案与大空间四维方案。",
+      "date": "2026-10-16",
+      "time": "13:50",
+      "url": "https://meeting.tencent.com/crm/N8r5Dm4777",
+      "phase": "第 14 期",
+      "isCustom": true
+    },
+    {
+      "id": "shared-recording-2026-10-09",
+      "title": "智能硬件端产品设计介绍",
+      "summary": "了解智显硬件的产品设计及功能。",
+      "date": "2026-10-09",
+      "time": "13:55",
+      "url": "https://meeting.tencent.com/crm/K0p1a6ZW51",
+      "phase": "训战课程",
+      "isCustom": true
+    }
+  ],
   "ecosystemVideos": [
     {
       "id": "ecosystem-video-1788435467467-4i33w",
